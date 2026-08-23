@@ -48,8 +48,7 @@ function newRoom(code, gameType = "liar") {
     matchRecorded: false,
     log: [],
     chat: [],
-    liarDeadline: null,
-    liarTimer: null,
+    liarRoundCount: 0,
   };
 }
 
@@ -65,7 +64,7 @@ function roomPublicState(room) {
     tableCards: room.pile.map(() => ({ hidden: true })),
     // 由伺服器明確指定目前唯一可以抓吹牛的玩家
 winnerId: room.winnerId,
-    liarDeadline: room.gameType === "liar" ? room.liarDeadline : null,
+    liarRoundCount: room.gameType === "liar" ? (room.liarRoundCount || 0) : 0,
     challengePlayerId: null,
     canChallenge: room.gameType === "liar" && room.started === true && !!room.lastPlay,
 lastPlay: room.lastPlay ? (
@@ -166,47 +165,41 @@ function dealStartingCards(room) {
 
 
 
-function clearLiarTimer(room) {
-  if (room?.liarTimer) {
-    clearTimeout(room.liarTimer);
-    room.liarTimer = null;
+
+
+
+
+
+
+
+function finishLiarByRoundLimit(room) {
+  if (!room || room.gameType !== "liar" || !room.started) return false;
+  if ((room.liarRoundCount || 0) < 20) return false;
+
+  // 若有人已經把牌出完，先保留抓吹牛／不抓的正常勝負流程。
+  if (room.players.some(p => p.hand.length === 0)) {
+    return false;
   }
-}
 
-function finishLiarByTimeout(room) {
-  if (!room || room.gameType !== "liar" || !room.started) return;
-
-  // 手牌最少者獲勝；同張數時依房內原座位順序決定。
   let winner = room.players[0] || null;
-  for (const p of room.players) {
-    if (!winner || p.hand.length < winner.hand.length) {
-      winner = p;
+
+  for (const player of room.players) {
+    if (!winner || player.hand.length < winner.hand.length) {
+      winner = player;
     }
   }
-  if (!winner) return;
+
+  if (!winner) return false;
 
   room.winnerId = winner.id;
   room.started = false;
-  room.liarDeadline = null;
-  clearLiarTimer(room);
 
-  room.log.push(`⏰ 5 分鐘時間到！${winner.name} 以 ${winner.hand.length} 張手牌獲勝`);
+  room.log.push(
+    `🏁 20 回合結束！${winner.name} 以最少手牌（${winner.hand.length} 張）獲勝`
+  );
+
   recordMatchResult(room, winner.id);
-  emitRoom(room);
-}
-
-function startLiarTimerFromNow(room) {
-  clearLiarTimer(room);
-
-  // 關鍵：只有按下「開始遊戲」後才會在這裡建立 deadline。
-  const durationMs = 5 * 60 * 1000;
-  room.liarDeadline = Date.now() + durationMs;
-
-  room.liarTimer = setTimeout(() => {
-    const liveRoom = rooms.get(room.code);
-    if (!liveRoom) return;
-    finishLiarByTimeout(liveRoom);
-  }, durationMs);
+  return true;
 }
 
 function recordMatchResult(room, winnerId) {
@@ -676,7 +669,7 @@ io.on("connection", socket => {
     if (room.players.length < 2) return cb?.({ ok: false, message: "至少需要 2 人" });
 
     dealStartingCards(room);
-    startLiarTimerFromNow(room);
+    room.liarRoundCount = 0;
 
     // V5.11：從房主按下「開始遊戲」這次事件開始計算整整 5 分鐘。
     room.matchRecorded = false;
@@ -722,8 +715,15 @@ io.on("connection", socket => {
       cards
     };
 
+    // 每一次成功出牌算一回合
+    room.liarRoundCount = (room.liarRoundCount || 0) + 1;
+
     room.log.push(`${player.name} 出了 ${cards.length} 張，宣稱都是 ${claimRank}`);
-    nextTurn(room);
+
+    if (!finishLiarByRoundLimit(room)) {
+      nextTurn(room);
+    }
+
     emitRoom(room);
     cb?.({ ok: true });
   });
@@ -792,7 +792,7 @@ io.on("connection", socket => {
     if (winner) {
       room.winnerId = winner.id;
       room.started = false;
-      clearLiarTimer(room);
+
       recordMatchResult(room, winner.id);
       room.log.push(`🎉 ${winner.name} 獲勝！`);
     }
@@ -815,7 +815,7 @@ io.on("connection", socket => {
       if (prev && prev.hand.length === 0) {
         room.winnerId = prev.id;
         room.started = false;
-        clearLiarTimer(room);
+
         recordMatchResult(room, prev.id);
         room.log.push(`🎉 ${prev.name} 出完手牌並通過挑戰機會，獲勝！`);
         emitRoom(room);
@@ -839,7 +839,7 @@ io.on("connection", socket => {
     socket.leave(code);
     socket.data.roomCode = null;
     if (!room.players.length) {
-      clearLiarTimer(room);
+
       rooms.delete(code);
       return cb?.({ ok: true });
     }

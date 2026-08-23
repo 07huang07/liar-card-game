@@ -1362,3 +1362,58 @@ body { overflow-x: hidden; }
   font-variant-numeric: tabular-nums;
   letter-spacing: .5px;
 }
+
+
+/* ===== V5.17 吹牛：20回合制 + 全員抓吹牛 ===== */
+.liarTimerDisplay {
+  display: none !important;
+}
+
+.liarRoundBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,215,90,.3);
+  color: #d8d8d8;
+  font-size: 12px;
+}
+
+.liarRoundBadge strong {
+  color: #ffd75c;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.globalChallengeBox {
+  flex: 0 0 auto;
+  border-color: rgba(220,70,75,.35) !important;
+}
+
+.globalChallengeText {
+  margin-bottom: 9px;
+  color: #bbb;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.globalChallengeBox #challengeBtn {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 11px;
+  background: #ae3135;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.globalChallengeBox #challengeBtn:not(:disabled) {
+  box-shadow: 0 0 18px rgba(220,60,65,.28);
+}
+
+.globalChallengeBox #challengeBtn:disabled {
+  opacity: .45;
+}

@@ -68,23 +68,19 @@ $("playBtn").onclick=()=>{
 };
 
 $("challengeBtn").onclick=()=>{
-  if (!state?.canChallenge || !state?.lastPlay || state.lastPlay.playerId === socket.id) {
-    return setMsg("目前不能抓吹牛");
+  if (!state?.started || !state?.lastPlay) {
+    return setMsg("目前沒有可以抓的上一手");
   }
 
-  // 點下後暫時防連點，伺服器回覆或新的 roomState 會恢復正確狀態。
   $("challengeBtn").disabled = true;
 
-  socket.emit("challenge",{},res=>{
-    if(!res?.ok){
-      setMsg(res?.message||"抓吹牛失敗");
-      const canChallenge =
-        !!state?.canChallenge &&
-        !!state?.lastPlay &&
-        state.lastPlay.playerId !== socket.id;
-      $("challengeBtn").disabled = !canChallenge;
+  socket.emit("challenge", {}, res => {
+    if (!res?.ok) {
+      setMsg(res?.message || "抓吹牛失敗");
+      $("challengeBtn").disabled = !(state?.started && state?.lastPlay);
       return;
     }
+
     setMsg("");
   });
 };
@@ -94,7 +90,6 @@ $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
 socket.on("roomState", next => {
   state = next;
-  restartLiarCountdownTicker();
   renderState();
 });
 
@@ -175,55 +170,15 @@ socket.on("chatMessage", msg => {
 
 
 
-let liarTimerInterval = null;
 
-function renderLiarCountdown() {
-  const el = $("liarTimerDisplay");
-  if (!el) return;
 
-  // 尚未開始前固定顯示 05:00，但不自行倒數。
-  if (!state?.started || !state?.liarDeadline) {
-    el.textContent = "05:00";
-    el.classList.remove("urgent");
-    return;
-  }
 
-  const deadline = Number(state.liarDeadline);
-  const remainingMs = Math.max(0, deadline - Date.now());
-
-  // 用 ceil 可確保剛按下開始時先顯示完整 05:00。
-  const totalSeconds = Math.ceil(remainingMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  el.textContent =
-    `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-
-  el.classList.toggle("urgent", totalSeconds <= 30 && totalSeconds > 0);
-
-  if (totalSeconds <= 0) {
-    el.textContent = "00:00";
-  }
-}
-
-function restartLiarCountdownTicker() {
-  if (liarTimerInterval) {
-    clearInterval(liarTimerInterval);
-  }
-
-  // 先立刻刷新一次
-  renderLiarCountdown();
-
-  // V5.14：真正每 0.25 秒重新計算剩餘時間
-  liarTimerInterval = setInterval(() => {
-    renderLiarCountdown();
-  }, 250);
-}
 
 function renderState(){
-  renderLiarCountdown();
+
   if(!state)return;
   $("roomCode").textContent=state.code;
+  $("liarRoundDisplay").textContent=`${state.liarRoundCount||0}/20`;
   $("pileCount").textContent=state.pileCount;
 
   const meIndex=state.players.findIndex(p=>p.id===socket.id);
@@ -300,11 +255,11 @@ function renderState(){
 
   $("tableCards").innerHTML=(state.tableCards||[]).map(()=>`<div class="tableCardBack"></div>`).join("");
 
-  // V5.13：任何其他玩家都可以抓，不看 turnIndex / challengePlayerId。
+  // V5.17：獨立抓吹牛按鈕。
+  // 只要遊戲中且桌上有上一手，所有玩家都看到按鈕。
   const canChallenge =
-    !!state.canChallenge &&
-    !!state.lastPlay &&
-    state.lastPlay.playerId !== socket.id;
+    !!state.started &&
+    !!state.lastPlay;
 
   $("challengeBtn").disabled = !canChallenge;
   $("challengeBtn").classList.toggle("hidden", !canChallenge);
@@ -382,5 +337,3 @@ function escapeHtml(s){
 
 // V5.14：頁面載入後啟動唯一一個倒數刷新器。
 // 尚未開始遊戲時只會停在 05:00；收到 liarDeadline 後才真正往下倒數。
-restartLiarCountdownTicker();
-

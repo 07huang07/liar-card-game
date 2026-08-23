@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.16.4",
+  "version": "5.17.0",
   "private": true,
-  "description": "Card Game Hub V5.16.4：修正吹牛倒數與全員抓吹牛，移除大老二時間限制",
+  "description": "Card Game Hub V5.17：吹牛改20回合制、獨立全員抓吹牛按鈕、修正liar頁載入錯誤",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
