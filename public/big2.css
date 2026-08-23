@@ -469,3 +469,89 @@ body{background:#1b1009;color:#fff}
 .comboOption strong {
   color: #ffd45b;
 }
+
+
+/* ===== V5.5：牌面文字修正 / 合法組合預覽 / PASS提醒 ===== */
+
+/* 手牌牌面：花色固定左上，點數固定中央。
+   10、J、Q、K、A 都不會再被右邊裁掉。 */
+.big2HandCard {
+  position: relative !important;
+  overflow: hidden !important;
+}
+.b2CardSuit {
+  left: 5px !important;
+  top: 6px !important;
+  width: auto !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+}
+.b2CardRank {
+  left: 0 !important;
+  right: 0 !important;
+  top: 27px !important;
+  width: 100% !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+/* 桌面牌同樣使用固定版面 */
+.stackSuit {
+  left: 4px !important;
+  top: 5px !important;
+  font-size: 10px !important;
+}
+.stackRank {
+  left: 0 !important;
+  right: 0 !important;
+  top: 22px !important;
+  width: 100% !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  white-space: nowrap !important;
+}
+
+/* 預覽小牌 */
+.miniSuit {
+  left: 4px !important;
+  top: 4px !important;
+  font-size: 9px !important;
+}
+.miniRank {
+  left: 0 !important;
+  right: 0 !important;
+  top: 20px !important;
+  width: 100% !important;
+  text-align: center !important;
+  font-size: 12px !important;
+}
+
+/* 沒有合法壓牌時，PASS 明顯發亮提醒 */
+.big2PassBtn.passReminder {
+  background: #e53935 !important;
+  border: 2px solid #ffd54f !important;
+  box-shadow:
+    0 0 0 3px rgba(255,213,79,.18),
+    0 0 22px rgba(255,75,65,.85) !important;
+  animation: passPulse 1s ease-in-out infinite alternate;
+}
+@keyframes passPulse {
+  from { transform: scale(1); filter: brightness(1); }
+  to   { transform: scale(1.025); filter: brightness(1.18); }
+}
+
+/* 預覽遮罩可點外面關閉，游標提示 */
+.comboOverlay {
+  cursor: pointer;
+}
+.comboCard {
+  cursor: default;
+}
+
+/* 預覽視窗不必靠取消鍵，限制高度並保留自然滾動 */
+.comboCard {
+  max-height: 76vh !important;
+}

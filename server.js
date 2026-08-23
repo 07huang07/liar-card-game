@@ -69,7 +69,8 @@ function roomPublicState(room) {
             playerId: room.lastPlay.playerId,
             playerName: room.lastPlay.playerName,
             type: room.lastPlay.type,
-            cards: room.lastPlay.cards
+            cards: room.lastPlay.cards,
+            ts: room.lastPlay.ts
           }
         : {
             playerId: room.lastPlay.playerId,
@@ -379,8 +380,45 @@ io.on("connection", socket => {
 
   socket.on("big2Combos", ({type}, cb) => {
     const room=rooms.get(socket.data.roomCode), player=room&&getPlayer(room,socket.id);
-    if(!room||room.gameType!=="big2"||!player)return cb?.({ok:false,message:"房間狀態錯誤"});
-    const combos=big2FindCombos(player.hand,type).slice(0,24).map(indices=>({indices,cards:indices.map(i=>player.hand[i])}));
+    if(!room||room.gameType!=="big2"||!player){
+      return cb?.({ok:false,message:"房間狀態錯誤"});
+    }
+
+    if(!room.started){
+      return cb?.({ok:false,message:"遊戲尚未開始"});
+    }
+
+    if(currentPlayer(room)?.id!==socket.id){
+      return cb?.({ok:false,message:"還沒輪到你"});
+    }
+
+    const raw = big2FindCombos(player.hand,type);
+    const combos = [];
+
+    for(const indices of raw){
+      const cards = indices.map(i=>player.hand[i]);
+      const info = big2Classify(cards,type);
+      if(!info.ok) continue;
+
+      // 第一手必須含梅花 3
+      if(!room.history.length && !cards.some(c=>c.rank==="3"&&c.suit==="♣")){
+        continue;
+      }
+
+      // 只預覽真正能壓過上一手的組合
+      if(!big2CanBeat(info,room.lastPlay)){
+        continue;
+      }
+
+      combos.push({
+        indices,
+        cards,
+        score: info.score
+      });
+
+      if(combos.length>=24) break;
+    }
+
     cb?.({ok:true,combos});
   });
 

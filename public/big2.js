@@ -7,6 +7,8 @@ let state = null;
 let selected = new Set();
 let selectedType = null;
 let pendingCombos = [];
+let lastAutoPreviewKey = "";
+let comboOverlayOpenedByAuto = false;
 
 document.querySelectorAll("#big2Animals button").forEach(btn=>{
   btn.onclick=()=>{
@@ -17,8 +19,8 @@ document.querySelectorAll("#big2Animals button").forEach(btn=>{
 document.querySelectorAll(".typeBtn").forEach(btn=>{
   btn.onclick=()=>{
     const t=btn.dataset.type;
-    selectedType = selectedType===t ? null : t;
-    document.querySelectorAll(".typeBtn").forEach(b=>b.classList.toggle("active",b.dataset.type===selectedType));
+    setSelectedType(selectedType===t ? null : t);
+    setPassReminder(false);
   };
 });
 
@@ -37,7 +39,16 @@ $("big2Join").onclick=()=>socket.emit("joinRoom",{name:nameValue(),animal:select
 });
 $("big2Copy").onclick=async()=>navigator.clipboard.writeText($("big2Code").textContent);
 $("big2Start").onclick=()=>socket.emit("big2Start",{},r=>{if(!r?.ok)$("big2Msg").textContent=r?.message||"無法開始"});
-$("big2Pass").onclick=()=>socket.emit("big2Pass",{},r=>{if(!r?.ok)$("big2Msg").textContent=r?.message||"不能 Pass"});
+$("big2Pass").onclick=()=>socket.emit("big2Pass",{},r=>{
+  if(!r?.ok){
+    $("big2Msg").textContent=r?.message||"不能 Pass";
+    return;
+  }
+  setPassReminder(false);
+  $("comboOverlay").classList.add("hidden");
+  comboOverlayOpenedByAuto=false;
+  $("big2Msg").textContent="";
+});
 $("big2Exit").onclick=()=>socket.emit("leaveRoom",{},()=>location.href="/");
 
 function cardText(c){return `${c.suit}${c.rank}`}
@@ -123,6 +134,84 @@ function renderChat(msgs=[]){
   $("big2Chat").innerHTML=msgs.map(m=>`<div class="big2ChatMsg"><strong>${esc(m.animal)} ${esc(m.name)}</strong>：${esc(m.text)}</div>`).join("");
   $("big2Chat").scrollTop=$("big2Chat").scrollHeight;
 }
+
+function setSelectedType(type){
+  selectedType = type || null;
+  document.querySelectorAll(".typeBtn").forEach(
+    b => b.classList.toggle("active", b.dataset.type===selectedType)
+  );
+}
+
+function setPassReminder(on){
+  $("big2Pass").classList.toggle("passReminder", !!on);
+}
+
+function requestPlayableCombos(type, {auto=false} = {}){
+  socket.emit("big2Combos",{type},res=>{
+    if(!res?.ok){
+      if(auto){
+        setPassReminder(true);
+      }else{
+        $("big2Msg").textContent=res?.message||"無該牌型組合";
+      }
+      return;
+    }
+
+    const combos = res.combos || [];
+    if(!combos.length){
+      if(auto){
+        setPassReminder(true);
+        $("big2Msg").textContent="沒有能壓過上一手的牌，請考慮 Pass";
+      }else{
+        $("big2Msg").textContent="無該牌型組合";
+      }
+      return;
+    }
+
+    setPassReminder(false);
+    $("big2Msg").textContent="";
+    pendingCombos=combos;
+    comboOverlayOpenedByAuto=auto;
+    showComboPreview(combos,type);
+  });
+}
+
+function autoPreviewForCurrentTurn(){
+  if(!state?.started) {
+    setPassReminder(false);
+    return;
+  }
+
+  const current = state.players?.[state.turnIndex];
+  const isMyTurn = current?.id===socket.id;
+
+  if(!isMyTurn){
+    setPassReminder(false);
+    return;
+  }
+
+  // 新一輪沒有上一手，不自動跳預覽。
+  if(!state.lastPlay){
+    setPassReminder(false);
+    return;
+  }
+
+  const type = state.lastPlay.type;
+  if(!type || type==="single"){
+    // 單張仍採雙擊手牌操作。若完全沒有合法單張，出牌時後端會阻擋。
+    setSelectedType(null);
+    setPassReminder(false);
+    return;
+  }
+
+  const key = `${state.lastPlay.ts||""}|${state.lastPlay.playerId}|${state.turnIndex}|${socket.id}`;
+  if(key===lastAutoPreviewKey) return;
+  lastAutoPreviewKey=key;
+
+  setSelectedType(type);
+  requestPlayableCombos(type,{auto:true});
+}
+
 function render(){
   if(!state)return;
   $("big2Code").textContent=state.code;
@@ -130,6 +219,7 @@ function render(){
   $("big2Status").textContent=state.started?`輪到：${cur?.animal||""} ${cur?.name||""}`:`等待開始，目前 ${state.players.length} 人`;
   $("big2HostBox").classList.toggle("hidden",state.started||state.hostId!==socket.id);
   renderSeats();renderStack();renderHistory();renderLeaderboard();renderChat(state.chat||[]);
+  autoPreviewForCurrentTurn();
 }
 
 socket.on("yourHand",cards=>{if(state?.gameType==="big2"||location.pathname.includes("big2")){hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand()}});
@@ -145,25 +235,7 @@ $("big2Play").onclick=()=>{
     $("big2Msg").textContent="請先選擇牌型；單張請直接雙擊手牌";
     return;
   }
-
-  // V5.4：直接掃描整副手牌，不需要先點手牌。
-  socket.emit("big2Combos",{type:selectedType},res=>{
-    if(!res?.ok){
-      $("big2Msg").textContent=res?.message||"無該牌型組合";
-      return;
-    }
-
-    if(!res.combos?.length){
-      $("big2Msg").textContent="無該牌型組合";
-      return;
-    }
-
-    $("big2Msg").textContent="";
-
-    // 即使只有一組，也先給玩家預覽確認。
-    pendingCombos=res.combos;
-    showComboPreview(res.combos,selectedType);
-  });
+  requestPlayableCombos(selectedType,{auto:false});
 };
 function submitPlay(indices,type){
   socket.emit("big2Play",{indices,type},res=>{
@@ -172,8 +244,9 @@ function submitPlay(indices,type){
       return;
     }
     selected.clear();
-    selectedType=null;
-    document.querySelectorAll(".typeBtn").forEach(b=>b.classList.remove("active"));
+    setSelectedType(null);
+    setPassReminder(false);
+    comboOverlayOpenedByAuto=false;
     $("big2Msg").textContent="";
   });
 }
@@ -194,7 +267,18 @@ function showComboPreview(combos,type){
 
   $("comboOverlay").classList.remove("hidden");
 }
-$("comboCancel").onclick=()=>$("comboOverlay").classList.add("hidden");
+$("comboCancel").onclick=()=>{
+  $("comboOverlay").classList.add("hidden");
+  comboOverlayOpenedByAuto=false;
+};
+
+// 點預覽視窗外的半透明背景即可關閉，不必捲到底按取消。
+$("comboOverlay").addEventListener("click",e=>{
+  if(e.target===$("comboOverlay")){
+    $("comboOverlay").classList.add("hidden");
+    comboOverlayOpenedByAuto=false;
+  }
+});
 
 function typeLabel(t){return ({single:"單張",pair:"對子",straight:"順子",fullhouse:"葫蘆",fourkind:"鐵支",straightflush:"同花順"}[t]||t)}
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
