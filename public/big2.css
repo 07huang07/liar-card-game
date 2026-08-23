@@ -319,3 +319,126 @@ body{background:#1b1009;color:#fff}
     overflow: visible;
   }
 }
+
+
+/* ===== V5.3：上一手資訊下移 + 該手牌完整展開 ===== */
+
+/* 上一手資訊框往下放進牌桌內，避開上方玩家資訊卡 */
+.lastPlayInfo {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  max-width: 76%;
+  padding: 7px 13px;
+  border-radius: 11px;
+  background: rgba(17,17,17,.94);
+  border: 1px solid #c89a2d;
+  color: #ffd35a;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.lastPlayInfo.hidden {
+  display: none !important;
+}
+
+/* 牌堆稍微往下，和上一手資訊框保留間距 */
+.big2Stack {
+  top: 57% !important;
+  width: 390px !important;
+  height: 185px !important;
+}
+
+/* 每一手牌本身不再疊牌，全部完整並排 */
+.stackPlay {
+  gap: 7px !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 移除舊版負 margin 疊牌效果 */
+.stackCard,
+.stackCard:first-child {
+  margin-left: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+/* 最新一手最清楚 */
+.stackPlay.latest {
+  opacity: 1 !important;
+  z-index: 6 !important;
+}
+
+/* 舊手仍保留淡淡層次，但同一手的牌不互相遮住 */
+.stackPlay.old {
+  opacity: .14 !important;
+  z-index: 2 !important;
+}
+
+/* 最多五張牌時完整塞進桌面中央 */
+.stackPlay.latest .stackCard {
+  width: 44px !important;
+  height: 62px !important;
+}
+
+/* 五張牌完整並排後，整組控制寬度 */
+.stackPlay.latest,
+.stackPlay.old {
+  max-width: 330px !important;
+}
+
+/* 1366~1450 螢幕 */
+@media (max-width:1450px) and (min-width:1001px) {
+  .lastPlayInfo {
+    top: 64px;
+    max-width: 72%;
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+
+  .big2Stack {
+    top: 58% !important;
+    width: 340px !important;
+  }
+
+  .stackPlay {
+    gap: 5px !important;
+  }
+
+  .stackPlay.latest .stackCard {
+    width: 40px !important;
+    height: 57px !important;
+  }
+}
+
+/* 較矮桌面 */
+@media (max-height:760px) and (min-width:1001px) {
+  .lastPlayInfo {
+    top: 54px;
+  }
+
+  .big2Stack {
+    top: 59% !important;
+    height: 150px !important;
+  }
+}
+
+/* 手機／窄版 */
+@media (max-width:1000px) {
+  .lastPlayInfo {
+    top: 64px;
+    max-width: 80%;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .big2Stack {
+    width: 320px !important;
+    max-width: 82% !important;
+  }
+}

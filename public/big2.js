@@ -48,7 +48,7 @@ function renderHand(){
   hand.forEach((c,i)=>{
     const b=document.createElement("button");
     b.className=`big2HandCard ${red(c)?"red":""} ${selected.has(i)?"selected":""}`;
-    b.textContent=cardText(c);
+    b.innerHTML=`<span class="b2CardSuit">${c.suit}</span><span class="b2CardRank">${c.rank}</span>`;
     b.onclick=()=>{selected.has(i)?selected.delete(i):selected.add(i);renderHand()};
     $("big2Hand").appendChild(b);
   });
@@ -75,15 +75,25 @@ function renderSeats(){
 }
 function renderStack(){
   const plays=state.tablePlays||[];
-  $("big2Stack").innerHTML=plays.slice(-4).map((p,idx,arr)=>{
+  const recent=plays.slice(-4);
+
+  $("big2Stack").innerHTML=recent.map((p,idx,arr)=>{
     const latest=idx===arr.length-1;
-    const offset=(idx-arr.length+1)*10;
+    const offset=(idx-arr.length+1)*8;
     return `<div class="stackPlay ${latest?"latest":"old"}" style="transform:translate(-50%,-50%) translate(${offset}px,${offset}px)">
-      ${p.cards.map(c=>`<div class="stackCard ${red(c)?"red":""}">${cardText(c)}</div>`).join("")}
+      ${p.cards.map(c=>`<div class="stackCard ${red(c)?"red":""}"><span class="stackSuit">${c.suit}</span><span class="stackRank">${c.rank}</span></div>`).join("")}
     </div>`;
   }).join("");
+
   const lp=state.lastPlay;
-  $("lastPlayLabel").textContent=lp?`上一手：${lp.playerName}｜${typeLabel(lp.type)}｜${lp.cards.map(cardText).join(" ")}`:"等待第一手";
+  const info=$("lastPlayInfo");
+  if(lp){
+    info.classList.remove("hidden");
+    info.textContent=`上一手：${lp.playerName}｜${typeLabel(lp.type)}｜${lp.cards.map(cardText).join(" ")}`;
+  }else{
+    info.classList.add("hidden");
+    info.textContent="";
+  }
 }
 function renderHistory(){
   $("big2History").innerHTML=(state.history||[]).slice().reverse().map(h=>`<div class="historyItem"><strong>${esc(h.playerName)}</strong>　${typeLabel(h.type)}<div class="historyCards">${h.cards.map(cardText).join(" ")}</div></div>`).join("");
@@ -131,7 +141,7 @@ function submitPlay(indices,type){
   });
 }
 function showComboPreview(combos,type){
-  $("comboOptions").innerHTML=combos.map((c,i)=>`<div class="comboOption" data-i="${i}"><strong>${typeLabel(type)} ${i+1}</strong><div class="comboPreview">${c.cards.map(x=>`<div class="miniCard ${red(x)?"red":""}">${cardText(x)}</div>`).join("")}</div></div>`).join("");
+  $("comboOptions").innerHTML=combos.map((c,i)=>`<div class="comboOption" data-i="${i}"><strong>${typeLabel(type)} ${i+1}</strong><div class="comboPreview">${c.cards.map(x=>`<div class="miniCard ${red(x)?"red":""}"><span class="miniSuit">${x.suit}</span><span class="miniRank">${x.rank}</span></div>`).join("")}</div></div>`).join("");
   document.querySelectorAll(".comboOption").forEach(el=>el.onclick=()=>{const c=pendingCombos[+el.dataset.i];$("comboOverlay").classList.add("hidden");submitPlay(c.indices,type)});
   $("comboOverlay").classList.remove("hidden");
 }

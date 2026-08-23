@@ -175,14 +175,34 @@ const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
 function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
 function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
 function big2Deal(room){
-  const deck=makeDeck();
-  room.players.forEach(p=>p.hand=[]);
-  for(let i=0;i<13;i++) for(const p of room.players) if(deck.length)p.hand.push(deck.pop());
-  room.players.forEach(p=>p.hand=big2Sort(p.hand));
-  room.started=true; room.turnIndex=0; room.lastPlay=null; room.tablePlays=[]; room.history=[]; room.passCount=0; room.winnerId=null; room.matchRecorded=false;
-  // 有梅花 3 的玩家先手；若牌局人數不足 4 仍用同一規則
-  const starter=room.players.findIndex(p=>p.hand.some(c=>c.rank==="3"&&c.suit==="♣"));
-  room.turnIndex=starter>=0?starter:0;
+  const deck = makeDeck();
+  room.players.forEach(p => p.hand = []);
+
+  // 從房主（players[0]）開始，一張一張輪流發，
+  // 直到 52 張全部發完，不保留任何底牌。
+  let receiverIndex = 0;
+  while (deck.length > 0) {
+    const card = deck.pop();
+    room.players[receiverIndex].hand.push(card);
+    receiverIndex = (receiverIndex + 1) % room.players.length;
+  }
+
+  room.players.forEach(p => p.hand = big2Sort(p.hand));
+
+  room.started = true;
+  room.turnIndex = 0;
+  room.lastPlay = null;
+  room.tablePlays = [];
+  room.history = [];
+  room.passCount = 0;
+  room.winnerId = null;
+  room.matchRecorded = false;
+
+  // 大老二首手仍由持有梅花 3 的玩家先出。
+  const starter = room.players.findIndex(
+    p => p.hand.some(c => c.rank === "3" && c.suit === "♣")
+  );
+  room.turnIndex = starter >= 0 ? starter : 0;
 }
 function big2Groups(cards){
   const m=new Map();
