@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "4.9.0",
+  "version": "4.10.0",
   "private": true,
-  "description": "動物吹牛撲克牌 V4.9：三位數字房號、房間聊天室、本輪點數與牌堆分離",
+  "description": "動物吹牛撲克牌 V4.10：刪除遊戲資訊與紀錄框，優化本輪點數與牌堆分區",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

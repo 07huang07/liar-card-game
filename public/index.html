@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>動物吹牛撲克牌 V4.9</title>
+  <title>動物吹牛撲克牌 V4.10</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -56,12 +56,6 @@
             <div id="leaderboard" class="leaderboardList"></div>
           </div>
 
-          <div class="miniBox">
-            <div class="miniTitle">遊戲資訊</div>
-            <div id="lastPlay" class="lastPlay">目前還沒有人出牌</div>
-            <div class="pileText">桌面 <span id="pileCount">0</span> 張</div>
-          </div>
-
           <div class="miniBox chatBox">
             <div class="miniTitle">💬 聊天室</div>
             <div id="chatMessages" class="chatMessages"></div>
@@ -72,10 +66,13 @@
             <div id="chatError" class="chatError"></div>
           </div>
 
-          <div class="miniBox logBox">
-            <div class="miniTitle">紀錄</div>
-            <div id="log" class="log"></div>
+          
+          <div class="compatHidden" aria-hidden="true">
+            <span id="lastPlay"></span>
+            <span id="pileCount">0</span>
+            <div id="log"></div>
           </div>
+
         </aside>
 
         <section class="centerGame">

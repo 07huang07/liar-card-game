@@ -650,3 +650,147 @@ body { overflow-x: hidden; }
     min-height: 190px;
   }
 }
+
+
+/* ===== V4.10：依照參考圖整理左側與牌桌 ===== */
+
+/* 左側只保留排行榜 + 聊天室 */
+.sidePanel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  align-content: stretch;
+}
+.leaderboardBox {
+  margin: 0;
+}
+.chatBox {
+  margin: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* 相容舊 JS 的隱藏節點，不顯示遊戲資訊/紀錄 */
+.compatHidden {
+  display: none !important;
+}
+
+/* 牌桌中央改成明確三區：
+   上：本輪點數
+   中：牌背
+   下：保留空間給下方玩家卡片
+*/
+.compactTableCenter {
+  width: 70%;
+  height: 78%;
+  display: grid;
+  grid-template-rows: 92px minmax(120px, 1fr) 70px;
+  align-items: center;
+  justify-items: center;
+  position: relative;
+}
+
+.tableRoundRankBadge {
+  position: static !important;
+  transform: none !important;
+  align-self: start;
+  justify-self: center;
+  margin-top: 4px;
+  min-width: 150px;
+  padding: 8px 18px 10px;
+  z-index: 5;
+}
+
+.compactTableCenter .tableCards {
+  grid-row: 2;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  max-width: 78%;
+  min-height: 118px;
+  margin: 0;
+  padding: 0;
+}
+
+/* 避免牌堆太高時碰到本輪點數 */
+.compactTableCenter .tableCards .tableCard,
+.compactTableCenter .tableCards .cardBack {
+  max-height: 118px;
+}
+
+/* 聊天室更像參考圖 */
+.chatMessages {
+  min-height: 150px;
+}
+.chatComposer {
+  margin-top: 7px;
+}
+
+/* 左側留白更乾淨 */
+.sidePanel .miniBox {
+  box-shadow: none;
+}
+
+/* 桌面版：維持單頁 */
+@media (min-width: 1000px) {
+  .gameGrid {
+    grid-template-columns: 275px minmax(0, 1fr) 300px;
+  }
+  .sidePanel {
+    min-height: 0;
+  }
+}
+
+/* 較矮螢幕：縮小本輪點數與牌背間距 */
+@media (max-height: 760px) and (min-width: 761px) {
+  .compactTableCenter {
+    height: 76%;
+    grid-template-rows: 72px minmax(96px, 1fr) 54px;
+  }
+  .tableRoundRankBadge {
+    min-width: 126px;
+    padding: 5px 12px 6px;
+    margin-top: 0;
+  }
+  .tableRoundRankBadge strong {
+    font-size: 28px;
+  }
+  .compactTableCenter .tableCards {
+    min-height: 90px;
+  }
+  .compactTableCenter .tableCards .tableCard,
+  .compactTableCenter .tableCards .cardBack {
+    max-height: 96px;
+  }
+  .chatMessages {
+    min-height: 110px;
+  }
+}
+
+/* 手機版 */
+@media (max-width: 760px) {
+  .sidePanel {
+    display: block;
+  }
+  .leaderboardBox,
+  .chatBox {
+    margin-bottom: 8px;
+  }
+  .compactTableCenter {
+    width: 76%;
+    height: 72%;
+    grid-template-rows: 68px minmax(92px, 1fr) 42px;
+  }
+  .tableRoundRankBadge {
+    min-width: 112px;
+    padding: 5px 10px 6px;
+  }
+  .compactTableCenter .tableCards {
+    min-height: 88px;
+    gap: 6px;
+  }
+}
