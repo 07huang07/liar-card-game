@@ -45,11 +45,13 @@ $("roomCodeInput").addEventListener("input", () => {
 
 $("createBtn").onclick=()=>socket.emit("createRoom",{name:nameValue(),animal:selectedAnimal},res=>{
   if(!res.ok)return $("landingMsg").textContent=res.message;
+  if(res.name) $("name").value=res.name;
   showGame(res.code);
 });
 
 $("joinBtn").onclick=()=>socket.emit("joinRoom",{name:nameValue(),code:$("roomCodeInput").value,animal:selectedAnimal},res=>{
   if(!res.ok)return $("landingMsg").textContent=res.message;
+  if(res.name) $("name").value=res.name;
   showGame(res.code);
 });
 

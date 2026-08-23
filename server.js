@@ -106,6 +106,15 @@ function cleanName(name) {
   return String(name || "").trim().slice(0, 16);
 }
 
+function generateRandomName(room = null) {
+  // 三位數字暱稱，例：玩家472；加入既有房間時避免撞名
+  for (let i = 0; i < 30; i++) {
+    const candidate = `玩家${Math.floor(100 + Math.random() * 900)}`;
+    if (!room || !room.players.some(p => p.name === candidate)) return candidate;
+  }
+  return `玩家${Date.now().toString().slice(-4)}`;
+}
+
 function cleanAnimal(animal) {
   const allowed = ["🐶","🐱","🐰","🦊","🐼","🐯","🐸","🐵"];
   return allowed.includes(animal) ? animal : "🐶";
@@ -150,7 +159,7 @@ io.on("connection", socket => {
   socket.on("createRoom", ({ name, animal }, cb) => {
     name = cleanName(name);
     animal = cleanAnimal(animal);
-    if (!name) return cb?.({ ok: false, message: "請輸入暱稱" });
+    if (!name) name = generateRandomName();
 
     let code;
     do code = String(Math.floor(100 + Math.random() * 900));
@@ -163,7 +172,7 @@ io.on("connection", socket => {
     socket.data.roomCode = code;
     room.log.push(`${name} 建立了房間`);
     emitRoom(room);
-    cb?.({ ok: true, code });
+    cb?.({ ok: true, code, name });
   });
 
   socket.on("joinRoom", ({ name, code, animal }, cb) => {
@@ -172,8 +181,8 @@ io.on("connection", socket => {
     code = cleanCode(code);
     const room = rooms.get(code);
 
-    if (!name) return cb?.({ ok: false, message: "請輸入暱稱" });
     if (!room) return cb?.({ ok: false, message: "找不到這個房間" });
+    if (!name) name = generateRandomName(room);
     if (room.started) return cb?.({ ok: false, message: "遊戲已開始" });
     if (room.players.length >= 4) return cb?.({ ok: false, message: "房間已滿（最多 4 人）" });
 
@@ -182,7 +191,7 @@ io.on("connection", socket => {
     socket.data.roomCode = code;
     room.log.push(`${name} 加入了房間`);
     emitRoom(room);
-    cb?.({ ok: true, code });
+    cb?.({ ok: true, code, name });
   });
 
   socket.on("sendChat", ({ message }, cb) => {

@@ -1093,3 +1093,97 @@ body { overflow-x: hidden; }
     right: 4px !important;
   }
 }
+
+
+/* ===== V4.13：玩家卡收進牌桌 + 隨機暱稱提示 ===== */
+
+.nameHint {
+  margin-top: -4px;
+  margin-bottom: 9px;
+  color: #9e9e9e;
+  font-size: 11px;
+}
+
+/* 關鍵修正：
+   舊版 seat-bottom 使用 bottom:-48px，會掉到手牌區。
+   上下玩家卡都改放在牌桌「內側」，不跨出 table。 */
+.compactTable .seat-top {
+  top: 8px !important;
+  bottom: auto !important;
+}
+
+.compactTable .seat-bottom {
+  bottom: 8px !important;
+  top: auto !important;
+}
+
+/* 縮小上下席位，避免吃掉桌面中央空間 */
+.compactTable .seat-top,
+.compactTable .seat-bottom {
+  min-width: 104px !important;
+  max-width: 118px !important;
+  padding: 6px 8px !important;
+  z-index: 22;
+}
+
+.compactTable .seat-top .avatar,
+.compactTable .seat-bottom .avatar {
+  font-size: 31px !important;
+}
+
+.compactTable .seat-top .name,
+.compactTable .seat-bottom .name {
+  font-size: 12px !important;
+}
+
+.compactTable .seat-top .cards,
+.compactTable .seat-bottom .cards,
+.compactTable .seat-top .record,
+.compactTable .seat-bottom .record {
+  font-size: 10px !important;
+}
+
+/* 中央牌堆稍微上移，和底部自己的玩家卡留出安全距離 */
+.compactTableCenter {
+  transform: translate(-50%, -54%) !important;
+  max-height: 54% !important;
+}
+
+/* 手牌區和牌桌之間保持獨立，不允許桌上玩家卡蓋過來 */
+.handDock {
+  position: relative;
+  z-index: 40;
+}
+
+/* 較矮螢幕再把玩家卡往牌桌內縮 */
+@media (max-height: 760px) and (min-width: 901px) {
+  .compactTable .seat-top {
+    top: 5px !important;
+  }
+  .compactTable .seat-bottom {
+    bottom: 5px !important;
+  }
+  .compactTable .seat-top,
+  .compactTable .seat-bottom {
+    min-width: 92px !important;
+    max-width: 104px !important;
+    padding: 4px 6px !important;
+  }
+  .compactTable .seat-top .avatar,
+  .compactTable .seat-bottom .avatar {
+    font-size: 27px !important;
+  }
+  .compactTableCenter {
+    transform: translate(-50%, -56%) !important;
+  }
+}
+
+/* 手機版也維持玩家卡在牌桌內，不往手牌區溢出 */
+@media (max-width: 900px) {
+  .compactTable .seat-top {
+    top: 5px !important;
+  }
+  .compactTable .seat-bottom {
+    bottom: 5px !important;
+  }
+}
