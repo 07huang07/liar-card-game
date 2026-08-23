@@ -48,6 +48,7 @@ function newRoom(code) {
 function roomPublicState(room) {
   return {
     code: room.code,
+    hostId: room.players[0]?.id || null,
     started: room.started,
     turnIndex: room.turnIndex,
     pileCount: room.pile.length,
@@ -113,11 +114,11 @@ function cleanCode(code) {
 }
 
 
-function dealTenCards(room) {
+function dealStartingCards(room) {
   const deck = makeDeck();
   room.players.forEach(p => p.hand = []);
 
-  for (let round = 0; round < 10; round++) {
+  for (let round = 0; round < 7; round++) {
     for (const player of room.players) {
       if (deck.length) player.hand.push(deck.pop());
     }
@@ -188,7 +189,7 @@ io.on("connection", socket => {
     if (room.players[0]?.id !== socket.id) return cb?.({ ok: false, message: "只有房主可以開始" });
     if (room.players.length < 2) return cb?.({ ok: false, message: "至少需要 2 人" });
 
-    dealTenCards(room);
+    dealStartingCards(room);
     room.matchRecorded = false;
     room.log = ["遊戲開始！"];
     emitRoom(room);
@@ -328,13 +329,41 @@ io.on("connection", socket => {
   });
 
 
+  socket.on("leaveRoom", (_, cb) => {
+    const code = socket.data.roomCode;
+    const room = rooms.get(code);
+    if (!room) {
+      socket.data.roomCode = null;
+      return cb?.({ ok: true });
+    }
+    const leaving = room.players.find(p => p.id === socket.id);
+    room.players = room.players.filter(p => p.id !== socket.id);
+    socket.leave(code);
+    socket.data.roomCode = null;
+    if (!room.players.length) {
+      rooms.delete(code);
+      return cb?.({ ok: true });
+    }
+    if (room.turnIndex >= room.players.length) room.turnIndex = 0;
+    if (room.started && room.players.length < 2) {
+      room.started = false;
+      room.roundRank = null;
+      room.pile = [];
+      room.lastPlay = null;
+      room.winnerId = null;
+    }
+    room.log.push(`${leaving?.name || "玩家"} 離開了房間`);
+    emitRoom(room);
+    cb?.({ ok: true });
+  });
+
   socket.on("continueMatch", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
     if (!room) return cb?.({ ok: false, message: "房間不存在" });
     if (!room.winnerId) return cb?.({ ok: false, message: "目前還沒有完成的對局" });
     if (room.players.length < 2) return cb?.({ ok: false, message: "至少需要 2 人" });
 
-    dealTenCards(room);
+    dealStartingCards(room);
     room.matchRecorded = false;
     room.log.push("🔄 開始下一場！");
     io.to(room.code).emit("matchContinued");

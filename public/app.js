@@ -127,6 +127,19 @@ function renderState(){
   });
 
   const myTurn=!!me?.isTurn;
+  const rankedPlayers=[...state.players].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0));
+  const medals=["🥇","🥈","🥉","4️⃣"];
+  $("leaderboard").innerHTML=rankedPlayers.map((p,i)=>`<div class="leaderRow ${p.id===socket.id?"me":""}"><span>${medals[i]||i+1}</span><span class="leaderName">${escapeHtml(p.animal||"🐶")} ${escapeHtml(p.name)}</span><strong>${p.wins||0}勝</strong><span>${p.losses||0}敗</span></div>`).join("");
+
+  const rankBadge=$("roundRankBadge");
+  if(state.roundRank){
+    rankBadge.classList.remove("waiting");
+    rankBadge.querySelector("strong").textContent=state.roundRank;
+  }else{
+    rankBadge.classList.add("waiting");
+    rankBadge.querySelector("strong").textContent="等待選擇";
+  }
+
   if(state.winnerId){
     const w=state.players.find(p=>p.id===state.winnerId);
     $("status").textContent=`遊戲結束：${w?.animal||""} ${w?.name||"玩家"} 獲勝`;
@@ -195,6 +208,18 @@ function renderHand(){
   });
 }
 
+
+$("exitGameBtn").onclick=()=>{
+  if(!window.confirm("確定要退出目前遊戲嗎？")) return;
+  socket.emit("leaveRoom",{},res=>{
+    if(!res?.ok){ setMsg(res?.message||"無法退出遊戲"); return; }
+    $("matchEndOverlay").classList.add("hidden");
+    $("game").classList.add("hidden");
+    $("landing").classList.remove("hidden");
+    $("landingMsg").textContent="你已退出遊戲，可以重新建立或加入房間。";
+    hand=[]; selected.clear(); state=null;
+  });
+};
 
 $("continueMatchBtn").onclick = () => {
   $("continueMatchBtn").disabled = true;
