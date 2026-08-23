@@ -149,12 +149,17 @@ function cleanCode(code) {
 
 function dealStartingCards(room) {
   const deck = makeDeck();
-  room.players.forEach(p => p.hand = []);
 
-  for (let round = 0; round < 7; round++) {
-    for (const player of room.players) {
-      if (deck.length) player.hand.push(deck.pop());
-    }
+  room.players.forEach(p => {
+    p.hand = [];
+  });
+
+  // V5.20：從房主開始，一張一張輪流發，直到 52 張全部發完。
+  let receiverIndex = 0;
+  while (deck.length > 0) {
+    const card = deck.pop();
+    room.players[receiverIndex].hand.push(card);
+    receiverIndex = (receiverIndex + 1) % room.players.length;
   }
 
   room.started = true;
@@ -163,6 +168,9 @@ function dealStartingCards(room) {
   room.pile = [];
   room.lastPlay = null;
   room.roundRank = null;
+
+  // 發牌完成後，立即檢查每位玩家是否有四張同點數。
+  discardAllPlayersFourOfAKind(room, "deal");
 }
 
 
@@ -173,6 +181,80 @@ function dealStartingCards(room) {
 
 
 
+
+
+function discardFourOfAKindFromHand(room, player, reason = "auto") {
+  if (!room || !player || !Array.isArray(player.hand)) return [];
+
+  const rankGroups = new Map();
+
+  player.hand.forEach((card, index) => {
+    if (!rankGroups.has(card.rank)) rankGroups.set(card.rank, []);
+    rankGroups.get(card.rank).push(index);
+  });
+
+  const sets = [...rankGroups.entries()]
+    .filter(([, indices]) => indices.length === 4)
+    .map(([rank, indices]) => ({
+      rank,
+      indices: [...indices].sort((a, b) => b - a)
+    }));
+
+  const discardedSets = [];
+
+  for (const set of sets) {
+    const cards = [];
+
+    for (const index of set.indices) {
+      const [card] = player.hand.splice(index, 1);
+      if (card) cards.push(card);
+    }
+
+    cards.reverse();
+
+    if (cards.length === 4) {
+      discardedSets.push({
+        rank: set.rank,
+        cards
+      });
+
+      room.log.push(
+        `✨ ${player.name} 湊齊四張 ${set.rank}，系統自動丟棄！`
+      );
+
+      // 只給該玩家播放丟棄動畫與提示。
+      io.to(player.id).emit("liarAutoDiscard", {
+        rank: set.rank,
+        cards,
+        remaining: player.hand.length,
+        reason
+      });
+
+      // 立即同步該玩家的新手牌。
+      io.to(player.id).emit("yourHand", player.hand);
+    }
+  }
+
+  return discardedSets;
+}
+
+function discardAllPlayersFourOfAKind(room, reason = "deal") {
+  if (!room) return [];
+
+  const result = [];
+
+  for (const player of room.players) {
+    const discarded = discardFourOfAKindFromHand(room, player, reason);
+    if (discarded.length) {
+      result.push({
+        playerId: player.id,
+        discarded
+      });
+    }
+  }
+
+  return result;
+}
 
 function finishLiarByRoundLimit(room) {
   if (!room || room.gameType !== "liar" || !room.started) return false;
@@ -677,6 +759,14 @@ io.on("connection", socket => {
     dealStartingCards(room);
     room.liarRoundCount = 0;
 
+    const autoDiscardWinner = room.players.find(p => p.hand.length === 0);
+    if (autoDiscardWinner) {
+      room.winnerId = autoDiscardWinner.id;
+      room.started = false;
+      recordMatchResult(room, autoDiscardWinner.id);
+      room.log.push(`🎉 ${autoDiscardWinner.name} 因自動丟棄後手牌歸零，獲勝！`);
+    }
+
     // V5.11：從房主按下「開始遊戲」這次事件開始計算整整 5 分鐘。
     room.matchRecorded = false;
     room.log = ["遊戲開始！"];
@@ -759,6 +849,7 @@ io.on("connection", socket => {
 
     if (liar) {
       accused.hand.push(...room.pile);
+      discardFourOfAKindFromHand(room, accused, "challenge");
       room.log.push(`抓到了！${accused.name} 吹牛，收下桌面 ${room.pile.length} 張牌`);
       room.turnIndex = room.players.findIndex(p => p.id === challenger.id);
 
@@ -773,6 +864,7 @@ io.on("connection", socket => {
       });
     } else {
       challenger.hand.push(...room.pile);
+      discardFourOfAKindFromHand(room, challenger, "challenge");
       room.log.push(`抓錯了！${accused.name} 沒吹牛，${challenger.name} 收下桌面 ${room.pile.length} 張牌`);
       room.turnIndex = room.players.findIndex(p => p.id === accused.id);
       nextTurn(room);

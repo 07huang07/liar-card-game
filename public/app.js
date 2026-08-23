@@ -80,6 +80,40 @@ $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
 socket.on("roomState",next=>{state=next;renderState();});
 
+
+socket.on("liarAutoDiscard", payload => {
+  const overlay = $("autoDiscardOverlay");
+  const cardsBox = $("autoDiscardCards");
+  const title = $("autoDiscardTitle");
+  const text = $("autoDiscardText");
+
+  if (!overlay || !cardsBox || !title || !text) return;
+
+  title.textContent = `四張 ${payload.rank} 自動丟棄！`;
+  text.textContent =
+    `你手上湊齊四張 ${payload.rank}，系統已自動丟棄。現在剩下 ${payload.remaining} 張牌。`;
+
+  cardsBox.innerHTML = (payload.cards || []).map(card => {
+    const red = card.suit === "♥" || card.suit === "♦";
+    return `<div class="discardAnimCard ${red ? "red" : ""}">${card.suit}${card.rank}</div>`;
+  }).join("");
+
+  overlay.classList.remove("hidden");
+
+  requestAnimationFrame(() => {
+    overlay.classList.add("show");
+  });
+
+  window.setTimeout(() => {
+    overlay.classList.remove("show");
+
+    window.setTimeout(() => {
+      overlay.classList.add("hidden");
+    }, 250);
+  }, 1900);
+});
+
+
 socket.on("challengeResult", result=>{
   const overlay=$("resultOverlay");
   const card=$("resultCard");
