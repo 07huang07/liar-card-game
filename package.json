@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.15.0",
+  "version": "5.16.4",
   "private": true,
-  "description": "Card Game Hub V5.15：大老二累積積分、crypto洗牌、炸彈牌型、10秒自動Pass、順子可連到2",
+  "description": "Card Game Hub V5.16.4：修正吹牛倒數與全員抓吹牛，移除大老二時間限制",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

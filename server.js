@@ -50,9 +50,6 @@ function newRoom(code, gameType = "liar") {
     chat: [],
     liarDeadline: null,
     liarTimer: null,
-    big2TurnDeadline: null,
-    big2TurnTimer: null,
-    big2TurnToken: 0
   };
 }
 
@@ -69,6 +66,8 @@ function roomPublicState(room) {
     // 由伺服器明確指定目前唯一可以抓吹牛的玩家
 winnerId: room.winnerId,
     liarDeadline: room.gameType === "liar" ? room.liarDeadline : null,
+    challengePlayerId: null,
+    canChallenge: room.gameType === "liar" && room.started === true && !!room.lastPlay,
 lastPlay: room.lastPlay ? (
       room.gameType === "big2"
         ? {
@@ -229,7 +228,6 @@ const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
 function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
 function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
 function big2Deal(room){
-  clearBig2TurnTimer(room);
 
   const deck = makeDeck();
 
@@ -267,8 +265,7 @@ function big2Deal(room){
   );
   room.turnIndex = starter >= 0 ? starter : 0;
 
-  // 第一位玩家從發牌結束後開始計時 10 秒。
-  scheduleBig2TurnTimer(room);
+
 }
 function big2Groups(cards){
   const m=new Map();
@@ -358,79 +355,6 @@ function big2Classify(cards,type){
 }
 const BIG2_TYPE_POWER={single:0,pair:1,straight:2,fullhouse:3,fourkind:4,straightflush:5};
 
-
-function clearBig2TurnTimer(room){
-  if(room?.big2TurnTimer){
-    clearTimeout(room.big2TurnTimer);
-    room.big2TurnTimer = null;
-  }
-  if(room) room.big2TurnDeadline = null;
-}
-
-function big2ApplyPass(room, {automatic=false} = {}){
-  if(!room || room.gameType !== "big2" || !room.started || !room.players.length){
-    return;
-  }
-
-  const passer = currentPlayer(room);
-
-  if(room.lastPlay){
-    room.passCount = (room.passCount || 0) + 1;
-    nextTurn(room);
-
-    // 其他人全部 pass 後，最後出牌者重新取得新一輪先手。
-    if(room.passCount >= room.players.length - 1){
-      const lastId = room.lastPlay.playerId;
-      room.lastPlay = null;
-      room.tablePlays = [];
-      room.passCount = 0;
-
-      const idx = room.players.findIndex(p => p.id === lastId);
-      room.turnIndex = idx >= 0 ? idx : room.turnIndex;
-    }
-  }else{
-    // 新一輪沒有上一手時，逾時仍直接跳過該玩家。
-    nextTurn(room);
-  }
-
-  if(automatic && passer){
-    room.log.push(`⏱ ${passer.name} 10 秒未出牌，自動 Pass`);
-  }
-}
-
-function scheduleBig2TurnTimer(room){
-  clearBig2TurnTimer(room);
-
-  if(!room || room.gameType !== "big2" || !room.started || !room.players.length){
-    return;
-  }
-
-  const token = (room.big2TurnToken || 0) + 1;
-  room.big2TurnToken = token;
-
-  const playerId = currentPlayer(room)?.id;
-  if(!playerId) return;
-
-  room.big2TurnDeadline = Date.now() + 10 * 1000;
-
-  room.big2TurnTimer = setTimeout(() => {
-    const liveRoom = rooms.get(room.code);
-
-    if(
-      !liveRoom ||
-      !liveRoom.started ||
-      liveRoom.gameType !== "big2" ||
-      liveRoom.big2TurnToken !== token ||
-      currentPlayer(liveRoom)?.id !== playerId
-    ){
-      return;
-    }
-
-    big2ApplyPass(liveRoom, {automatic:true});
-    scheduleBig2TurnTimer(liveRoom);
-    emitRoom(liveRoom);
-  }, 10 * 1000);
-}
 
 function big2PenaltyForHand(hand){
   let penalty = 0;
@@ -681,11 +605,11 @@ io.on("connection", socket => {
       // 只要任何一位玩家出完牌，本局立刻結束並結算積分。
       room.winnerId = player.id;
       room.started = false;
-      clearBig2TurnTimer(room);
+
       big2RecordScore(room, player.id);
     }else{
       nextTurn(room);
-      scheduleBig2TurnTimer(room);
+
     }
 
     emitRoom(room);
@@ -713,24 +637,35 @@ io.on("connection", socket => {
   });
 
   socket.on("big2Pass", (_, cb) => {
-    const room=rooms.get(socket.data.roomCode);
+    const room = rooms.get(socket.data.roomCode);
 
-    if(!room||room.gameType!=="big2"||!room.started){
-      return cb?.({ok:false,message:"遊戲尚未開始"});
+    if (!room || room.gameType !== "big2" || !room.started) {
+      return cb?.({ ok: false, message: "遊戲尚未開始" });
     }
 
-    if(currentPlayer(room)?.id!==socket.id){
-      return cb?.({ok:false,message:"還沒輪到你"});
+    if (currentPlayer(room)?.id !== socket.id) {
+      return cb?.({ ok: false, message: "還沒輪到你" });
     }
 
-    if(!room.lastPlay){
-      return cb?.({ok:false,message:"目前是新一輪，不能手動 Pass"});
+    if (!room.lastPlay) {
+      return cb?.({ ok: false, message: "目前是新一輪，不能 Pass" });
     }
 
-    big2ApplyPass(room);
-    scheduleBig2TurnTimer(room);
+    room.passCount = (room.passCount || 0) + 1;
+    nextTurn(room);
+
+    if (room.passCount >= room.players.length - 1) {
+      const lastId = room.lastPlay.playerId;
+      room.lastPlay = null;
+      room.tablePlays = [];
+      room.passCount = 0;
+
+      const idx = room.players.findIndex(p => p.id === lastId);
+      if (idx >= 0) room.turnIndex = idx;
+    }
+
     emitRoom(room);
-    cb?.({ok:true});
+    cb?.({ ok: true });
   });
 
   socket.on("startGame", (_, cb) => {
@@ -741,9 +676,9 @@ io.on("connection", socket => {
     if (room.players.length < 2) return cb?.({ ok: false, message: "至少需要 2 人" });
 
     dealStartingCards(room);
+    startLiarTimerFromNow(room);
 
     // V5.11：從房主按下「開始遊戲」這次事件開始計算整整 5 分鐘。
-    startLiarTimerFromNow(room);
     room.matchRecorded = false;
     room.log = ["遊戲開始！"];
     emitRoom(room);
@@ -857,6 +792,7 @@ io.on("connection", socket => {
     if (winner) {
       room.winnerId = winner.id;
       room.started = false;
+      clearLiarTimer(room);
       recordMatchResult(room, winner.id);
       room.log.push(`🎉 ${winner.name} 獲勝！`);
     }
@@ -879,6 +815,7 @@ io.on("connection", socket => {
       if (prev && prev.hand.length === 0) {
         room.winnerId = prev.id;
         room.started = false;
+        clearLiarTimer(room);
         recordMatchResult(room, prev.id);
         room.log.push(`🎉 ${prev.name} 出完手牌並通過挑戰機會，獲勝！`);
         emitRoom(room);
@@ -917,7 +854,7 @@ io.on("connection", socket => {
     room.log.push(`${leaving?.name || "玩家"} 離開了房間`);
 
     if(room.gameType === "big2" && room.started){
-      scheduleBig2TurnTimer(room);
+
     }
 
     emitRoom(room);
@@ -967,11 +904,11 @@ io.on("connection", socket => {
     }
 
     if (room.players.length === 0) {
-      clearBig2TurnTimer(room);
+
       rooms.delete(code);
     } else {
       if(room.gameType === "big2" && room.started){
-        scheduleBig2TurnTimer(room);
+
       }
       emitRoom(room);
     }

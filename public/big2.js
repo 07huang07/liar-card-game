@@ -11,8 +11,6 @@ let lastAutoPreviewKey = "";
 let comboOverlayOpenedByAuto = false;
 let lastRenderedHistoryCount = 0;
 let lastSettlementTs = 0;
-let big2TurnTicker = null;
-
 document.querySelectorAll("#big2Animals button").forEach(btn=>{
   btn.onclick=()=>{
     document.querySelectorAll("#big2Animals button").forEach(b=>b.classList.remove("active"));
@@ -361,31 +359,6 @@ function closeSettlement(){
 }
 
 
-function renderBig2TurnCountdown(){
-  const el=$("big2TurnTimer");
-  if(!el) return;
-
-  if(!state?.started || !state?.big2TurnDeadline){
-    el.textContent="--";
-    el.classList.remove("urgent");
-    return;
-  }
-
-  const remaining=Math.max(0, Number(state.big2TurnDeadline)-Date.now());
-  const sec=Math.ceil(remaining/1000);
-
-  el.textContent=`${sec}s`;
-  el.classList.toggle("urgent",sec<=3 && sec>0);
-
-  if(sec<=0) el.textContent="0s";
-}
-
-function startBig2TurnTicker(){
-  if(big2TurnTicker) clearInterval(big2TurnTicker);
-  renderBig2TurnCountdown();
-  big2TurnTicker=setInterval(renderBig2TurnCountdown,250);
-}
-
 function render(){
   if(!state)return;
   $("big2Code").textContent=state.code;
@@ -403,7 +376,6 @@ function render(){
   renderSeats();renderStack();renderHistory();renderLeaderboard();renderChat(state.chat||[]);
   autoPreviewForCurrentTurn();
   renderSettlement();
-  renderBig2TurnCountdown();
 }
 
 socket.on("yourHand",cards=>{if(state?.gameType==="big2"||location.pathname.includes("big2")){hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand()}});
@@ -468,4 +440,3 @@ function typeLabel(t){return ({single:"單張",pair:"對子",straight:"順子",f
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
 
 // V5.15：大老二回合 10 秒倒數顯示
-startBig2TurnTicker();

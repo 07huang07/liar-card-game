@@ -94,9 +94,7 @@ $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
 socket.on("roomState", next => {
   state = next;
-
-  // 收到伺服器最新 deadline 後立即更新畫面。
-  renderLiarCountdown();
+  restartLiarCountdownTicker();
   renderState();
 });
 
