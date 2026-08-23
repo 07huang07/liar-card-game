@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>大老二｜Card Game Hub V5.6</title>
+  <title>大老二｜Card Game Hub V5.7</title>
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/big2.css">
 </head>
@@ -102,6 +102,32 @@
     <p>這個牌型有多個可用組合，請選一組預覽。</p>
     <div id="comboOptions" class="comboOptions"></div>
     <button id="comboCancel">取消</button>
+  </div>
+</div>
+
+
+<div id="big2SettlementOverlay" class="big2SettlementOverlay hidden">
+  <div class="big2SettlementCard">
+    <div class="settlementTrophy">🏆</div>
+    <h2 id="settlementTitle">本局結束</h2>
+    <div id="settlementSubtitle" class="settlementSubtitle"></div>
+
+    <div class="settlementSection">
+      <h3>本局積分結算</h3>
+      <div id="settlementScores" class="settlementScores"></div>
+    </div>
+
+    <div class="settlementSection">
+      <h3>目前排名</h3>
+      <div id="settlementRanking" class="settlementRanking"></div>
+    </div>
+
+    <div id="settlementMsg" class="settlementMsg"></div>
+
+    <div class="settlementActions">
+      <button id="settlementLeave" class="settlementLeaveBtn">離開遊戲</button>
+      <button id="settlementRematch" class="settlementRematchBtn">再來一場</button>
+    </div>
   </div>
 </div>
 

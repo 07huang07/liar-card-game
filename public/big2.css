@@ -598,3 +598,230 @@ body{background:#1b1009;color:#fff}
   color: #ffd65a;
   white-space: nowrap;
 }
+
+
+/* ===== V5.7：聊天室輸入固定底部 + 結算畫面 ===== */
+
+/* 聊天室本身用垂直 flex，輸入列永遠貼在框框最下面 */
+.big2Left .chatBox {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+.big2Left .chatBox > h3 {
+  flex: 0 0 auto;
+}
+
+.big2Chat {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+.big2ChatRow {
+  flex: 0 0 auto !important;
+  margin-top: auto !important;
+  padding-top: 5px !important;
+}
+
+/* ===== 大老二結算畫面 ===== */
+.big2SettlementOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+  background: rgba(0,0,0,.78);
+  backdrop-filter: blur(4px);
+}
+
+.big2SettlementOverlay.hidden {
+  display: none !important;
+}
+
+.big2SettlementCard {
+  width: min(720px, 94vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 22px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(104,78,24,.28), transparent 42%),
+    #141414;
+  border: 1px solid #665329;
+  box-shadow: 0 25px 80px rgba(0,0,0,.7);
+}
+
+.settlementTrophy {
+  text-align: center;
+  font-size: 46px;
+}
+
+.big2SettlementCard h2 {
+  margin: 3px 0 2px;
+  text-align: center;
+  color: #ffd65a;
+  font-size: 28px;
+}
+
+.settlementSubtitle {
+  margin-bottom: 18px;
+  text-align: center;
+  color: #eee;
+  font-size: 15px;
+}
+
+.settlementSection {
+  margin-top: 13px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid #303030;
+}
+
+.settlementSection h3 {
+  margin: 0 0 9px;
+  color: #ffd55a;
+  font-size: 14px;
+}
+
+.settlementScores,
+.settlementRanking {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settlementScoreRow {
+  display: grid;
+  grid-template-columns: minmax(120px,1fr) minmax(180px,1.8fr) 80px;
+  gap: 9px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: #202020;
+  font-size: 12px;
+}
+
+.settlementScoreRow.winner {
+  background: rgba(105,82,22,.28);
+  outline: 1px solid rgba(255,211,74,.32);
+}
+
+.settlementPlayer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 900;
+}
+
+.winnerTag {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #d9a91e;
+  color: #111;
+  font-size: 8px;
+}
+
+.settlementExplain {
+  color: #aaa;
+  font-size: 10px;
+}
+
+.settlementScoreRow strong {
+  text-align: right;
+  font-size: 14px;
+}
+
+.settlementScoreRow strong.positive {
+  color: #79df99;
+}
+
+.settlementScoreRow strong.negative {
+  color: #ff8585;
+}
+
+.settlementRankRow {
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr) 80px 55px;
+  gap: 7px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: #202020;
+  font-size: 12px;
+}
+
+.settlementRankRow.me {
+  background: rgba(42,117,79,.22);
+  outline: 1px solid rgba(85,200,139,.22);
+}
+
+.rankPlayer {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settlementRankRow strong {
+  color: #ffd65a;
+  text-align: right;
+}
+
+.settlementMsg {
+  min-height: 18px;
+  margin-top: 8px;
+  text-align: center;
+  color: #ffaaa5;
+  font-size: 11px;
+}
+
+.settlementActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.settlementActions button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.settlementLeaveBtn {
+  background: #983437;
+}
+
+.settlementRematchBtn {
+  background: #268555;
+}
+
+.settlementRematchBtn:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+@media(max-width:600px) {
+  .settlementScoreRow {
+    grid-template-columns: 1fr 70px;
+  }
+
+  .settlementExplain {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .settlementActions {
+    grid-template-columns: 1fr;
+  }
+}

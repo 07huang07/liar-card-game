@@ -527,6 +527,26 @@ io.on("connection", socket => {
     emitRoom(room); cb?.({ok:true});
   });
 
+  socket.on("big2Rematch", (_, cb) => {
+    const room = rooms.get(socket.data.roomCode);
+
+    if(!room || room.gameType !== "big2"){
+      return cb?.({ok:false,message:"這不是大老二房間"});
+    }
+
+    if(room.started){
+      return cb?.({ok:false,message:"目前牌局尚未結束"});
+    }
+
+    if(room.players.length < 2){
+      return cb?.({ok:false,message:"至少需要 2 位玩家"});
+    }
+
+    big2Deal(room);
+    emitRoom(room);
+    cb?.({ok:true});
+  });
+
   socket.on("big2Pass", (_, cb) => {
     const room=rooms.get(socket.data.roomCode);
     if(!room||room.gameType!=="big2"||!room.started)return cb?.({ok:false,message:"遊戲尚未開始"});

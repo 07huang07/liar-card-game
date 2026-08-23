@@ -10,6 +10,7 @@ let pendingCombos = [];
 let lastAutoPreviewKey = "";
 let comboOverlayOpenedByAuto = false;
 let lastRenderedHistoryCount = 0;
+let lastSettlementTs = 0;
 
 document.querySelectorAll("#big2Animals button").forEach(btn=>{
   btn.onclick=()=>{
@@ -51,6 +52,33 @@ $("big2Pass").onclick=()=>socket.emit("big2Pass",{},r=>{
   $("big2Msg").textContent="";
 });
 $("big2Exit").onclick=()=>socket.emit("leaveRoom",{},()=>location.href="/");
+
+$("settlementLeave").onclick=()=>{
+  socket.emit("leaveRoom",{},()=>{
+    location.href="/";
+  });
+};
+
+$("settlementRematch").onclick=()=>{
+  $("settlementRematch").disabled=true;
+  $("settlementMsg").textContent="正在開始下一場…";
+
+  socket.emit("big2Rematch",{},res=>{
+    $("settlementRematch").disabled=false;
+
+    if(!res?.ok){
+      $("settlementMsg").textContent=res?.message||"無法開始下一場";
+      return;
+    }
+
+    closeSettlement();
+    $("settlementMsg").textContent="";
+    selected.clear();
+    setSelectedType(null);
+    setPassReminder(false);
+    lastAutoPreviewKey="";
+  });
+};
 
 function cardText(c){return `${c.suit}${c.rank}`}
 function red(c){return c.suit==="♥"||c.suit==="♦"}
@@ -235,6 +263,72 @@ function autoPreviewForCurrentTurn(){
   requestPlayableCombos(type,{auto:true});
 }
 
+
+function renderSettlement(){
+  const overlay=$("big2SettlementOverlay");
+
+  if(!state?.winnerId || !state?.scoreSummary){
+    overlay.classList.add("hidden");
+    return;
+  }
+
+  const summary=state.scoreSummary;
+  const winner=state.players.find(p=>p.id===state.winnerId);
+
+  $("settlementTitle").textContent=`${winner?.animal||"🏆"} ${winner?.name||"玩家"} 獲勝！`;
+  $("settlementSubtitle").textContent=`本局獲得 +${summary.winnerGain||0} 分`;
+
+  const detailMap=new Map((summary.details||[]).map(d=>[d.playerId,d]));
+
+  $("settlementScores").innerHTML=state.players.map(p=>{
+    const d=detailMap.get(p.id);
+    const delta=d?.delta||0;
+    const deltaText=delta>0?`+${delta}`:`${delta}`;
+
+    let explain="";
+    if(p.id===state.winnerId){
+      explain=`其他玩家扣分總和轉入`;
+    }else{
+      const parts=[];
+      if(d?.twos) parts.push(`2 × ${d.twos} = -${d.twos*5}`);
+      if(d?.aces) parts.push(`A × ${d.aces} = -${d.aces*3}`);
+      if(d?.others) parts.push(`其他 × ${d.others} = -${d.others}`);
+      explain=parts.length?parts.join("、"):"無剩餘牌";
+    }
+
+    return `<div class="settlementScoreRow ${p.id===state.winnerId?"winner":""}">
+      <div class="settlementPlayer">
+        <span>${esc(p.animal)} ${esc(p.name)}</span>
+        ${p.id===state.winnerId?'<span class="winnerTag">WIN</span>':""}
+      </div>
+      <div class="settlementExplain">${esc(explain)}</div>
+      <strong class="${delta>=0?"positive":"negative"}">${deltaText} 分</strong>
+    </div>`;
+  }).join("");
+
+  const ranking=[...state.players].sort((a,b)=>
+    (b.points||0)-(a.points||0) ||
+    (b.wins||0)-(a.wins||0) ||
+    String(a.name).localeCompare(String(b.name))
+  );
+
+  $("settlementRanking").innerHTML=ranking.map((p,i)=>`
+    <div class="settlementRankRow ${p.id===socket.id?"me":""}">
+      <span class="rankMedal">${["🥇","🥈","🥉","4️⃣"][i]||i+1}</span>
+      <span class="rankPlayer">${esc(p.animal)} ${esc(p.name)}${p.id===socket.id?"（你）":""}</span>
+      <strong>${p.points||0} 分</strong>
+      <span>${p.wins||0} 勝</span>
+    </div>`).join("");
+
+  $("settlementMsg").textContent="";
+  overlay.classList.remove("hidden");
+  lastSettlementTs=summary.ts||Date.now();
+}
+
+function closeSettlement(){
+  $("big2SettlementOverlay").classList.add("hidden");
+}
+
 function render(){
   if(!state)return;
   $("big2Code").textContent=state.code;
@@ -251,6 +345,7 @@ function render(){
   $("big2HostBox").classList.toggle("hidden",state.started||state.hostId!==socket.id);
   renderSeats();renderStack();renderHistory();renderLeaderboard();renderChat(state.chat||[]);
   autoPreviewForCurrentTurn();
+  renderSettlement();
 }
 
 socket.on("yourHand",cards=>{if(state?.gameType==="big2"||location.pathname.includes("big2")){hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand()}});
