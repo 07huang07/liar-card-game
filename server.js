@@ -49,6 +49,7 @@ function newRoom(code, gameType = "liar") {
     log: [],
     chat: [],
     liarRoundCount: 0,
+    liarRoundLimit: 20,
   };
 }
 
@@ -65,6 +66,7 @@ function roomPublicState(room) {
     // 由伺服器明確指定目前唯一可以抓吹牛的玩家
 winnerId: room.winnerId,
     liarRoundCount: room.gameType === "liar" ? (room.liarRoundCount || 0) : 0,
+    liarRoundLimit: room.gameType === "liar" ? (room.liarRoundLimit || 20) : 0,
     challengePlayerId: null,
     canChallenge: room.gameType === "liar" && room.started === true && !!room.lastPlay,
 lastPlay: room.lastPlay ? (
@@ -174,7 +176,7 @@ function dealStartingCards(room) {
 
 function finishLiarByRoundLimit(room) {
   if (!room || room.gameType !== "liar" || !room.started) return false;
-  if ((room.liarRoundCount || 0) < 20) return false;
+  if ((room.liarRoundCount || 0) < (room.liarRoundLimit || 20)) return false;
 
   // 若有人已經把牌出完，先保留抓吹牛／不抓的正常勝負流程。
   if (room.players.some(p => p.hand.length === 0)) {
@@ -195,7 +197,7 @@ function finishLiarByRoundLimit(room) {
   room.started = false;
 
   room.log.push(
-    `🏁 20 回合結束！${winner.name} 以最少手牌（${winner.hand.length} 張）獲勝`
+    `🏁 ${room.liarRoundLimit || 20} 回合結束！${winner.name} 以最少手牌（${winner.hand.length} 張）獲勝`
   );
 
   recordMatchResult(room, winner.id);
@@ -454,7 +456,7 @@ function big2CanBeat(play,last){
 }
 
 io.on("connection", socket => {
-  socket.on("createRoom", ({ name, animal, gameType = "liar" }, cb) => {
+  socket.on("createRoom", ({ name, animal, gameType = "liar", roundLimit = 20 }, cb) => {
     name = cleanName(name);
     animal = cleanAnimal(animal);
     if (!name) name = generateRandomName();
@@ -465,6 +467,10 @@ io.on("connection", socket => {
 
     gameType = gameType === "big2" ? "big2" : "liar";
     const room = newRoom(code, gameType);
+    if (gameType === "liar") {
+      const n = Number.parseInt(roundLimit, 10);
+      room.liarRoundLimit = Number.isInteger(n) ? Math.min(200, Math.max(1, n)) : 20;
+    }
     room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0, points: 0 });
     rooms.set(code, room);
     socket.join(code);

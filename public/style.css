@@ -1473,3 +1473,4 @@ body { overflow-x: hidden; }
 .controlPanel .miniBox {
   overflow: visible;
 }
+.roundLimitRow{display:flex;align-items:center;gap:10px;margin:6px 0 2px}.roundLimitRow input{flex:1;min-width:0}.roundLimitRow span{white-space:nowrap;font-weight:800;color:#ffd45b}

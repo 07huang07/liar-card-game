@@ -43,7 +43,7 @@ $("roomCodeInput").addEventListener("input", () => {
 });
 
 
-$("createBtn").onclick=()=>socket.emit("createRoom",{name:nameValue(),animal:selectedAnimal},res=>{
+$("createBtn").onclick=()=>socket.emit("createRoom",{name:nameValue(),animal:selectedAnimal,roundLimit:Number($("roundLimitInput")?.value||20)},res=>{
   if(!res.ok)return $("landingMsg").textContent=res.message;
   if(res.name) $("name").value=res.name;
   showGame(res.code);
@@ -269,11 +269,7 @@ $("exitGameBtn").onclick=()=>{
   if(!window.confirm("確定要退出目前遊戲嗎？")) return;
   socket.emit("leaveRoom",{},res=>{
     if(!res?.ok){ setMsg(res?.message||"無法退出遊戲"); return; }
-    $("matchEndOverlay").classList.add("hidden");
-    $("game").classList.add("hidden");
-    $("landing").classList.remove("hidden");
-    $("landingMsg").textContent="你已退出遊戲，可以重新建立或加入房間。";
-    hand=[]; selected.clear(); state=null;
+    window.location.href="/";
   });
 };
 
@@ -296,13 +292,7 @@ socket.on("matchContinued", () => {
 });
 
 socket.on("sessionEnded", () => {
-  $("matchEndOverlay").classList.add("hidden");
-  $("game").classList.add("hidden");
-  $("landing").classList.remove("hidden");
-  $("landingMsg").textContent = "遊戲已結束，可以重新建立或加入房間。";
-  hand = [];
-  selected.clear();
-  state = null;
+  window.location.href="/";
 });
 
 function escapeHtml(s){
