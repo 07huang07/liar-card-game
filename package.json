@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "4.11.0",
+  "version": "4.12.0",
   "private": true,
-  "description": "動物吹牛撲克牌 V4.11：固定三欄版面，本輪點數移出牌桌中央，避免遮擋操作區",
+  "description": "動物吹牛撲克牌 V4.12：開始遊戲移至右側獨立區塊，四人局側邊玩家收進牌桌避免遮住操作區",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -987,3 +987,109 @@ body { overflow-x: hidden; }
     width: 70% !important;
   }
 }
+
+
+/* ===== V4.12：開始遊戲獨立右側 + 四人局不遮操作區 ===== */
+
+/* 開始遊戲從牌桌下方移到右側獨立區塊 */
+.startControlBox {
+  flex: 0 0 auto;
+}
+.startBtnStandalone {
+  width: 100%;
+  min-height: 52px;
+  background: #247a50;
+  color: #fff;
+  border: 0;
+  border-radius: 11px;
+  font-size: 17px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.startBtnStandalone:hover {
+  background: #2b915f;
+}
+.startHint {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 10px;
+  color: #aaa;
+}
+
+/* 牌桌中央欄不允許元素跨入右側控制欄 */
+.centerGame {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+
+/* 原本左右玩家卡用 -62px 掛在桌外，四人局會撞到左右欄。
+   改成收進牌桌內部。 */
+.compactTable .seat-left {
+  left: 10px !important;
+}
+.compactTable .seat-right {
+  right: 10px !important;
+}
+
+/* 四人局側邊卡片稍微縮小，留更多牌桌空間 */
+.compactTable .seat-left,
+.compactTable .seat-right {
+  min-width: 92px !important;
+  max-width: 102px !important;
+  padding: 6px 7px !important;
+  z-index: 18;
+}
+.compactTable .seat-left .avatar,
+.compactTable .seat-right .avatar {
+  font-size: 29px !important;
+}
+.compactTable .seat-left .name,
+.compactTable .seat-right .name {
+  font-size: 12px !important;
+}
+.compactTable .seat-left .cards,
+.compactTable .seat-right .cards,
+.compactTable .seat-left .record,
+.compactTable .seat-right .record {
+  font-size: 10px !important;
+}
+
+/* 右側操作區永遠保持在最上層 */
+.controlPanel {
+  position: relative;
+  z-index: 50;
+}
+
+/* 三欄給右側操作區固定安全寬度 */
+.gameGrid {
+  grid-template-columns: 190px minmax(0, 1fr) 230px !important;
+}
+
+/* 中等桌面寬度時縮小牌桌，避免四人席位逼近控制欄 */
+@media (max-width: 1450px) and (min-width: 901px) {
+  .gameGrid {
+    grid-template-columns: 180px minmax(0, 1fr) 220px !important;
+  }
+  .compactTable {
+    width: min(62vw, 620px) !important;
+  }
+  .compactTable .seat-left {
+    left: 6px !important;
+  }
+  .compactTable .seat-right {
+    right: 6px !important;
+  }
+}
+
+/* 手機/窄版沿用直向排版，不硬塞四人左右席 */
+@media (max-width: 900px) {
+  .centerGame {
+    overflow: visible !important;
+  }
+  .compactTable .seat-left {
+    left: 4px !important;
+  }
+  .compactTable .seat-right {
+    right: 4px !important;
+  }
+}
