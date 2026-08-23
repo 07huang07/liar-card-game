@@ -1331,3 +1331,27 @@ body { overflow-x: hidden; }
     padding: 5px !important;
   }
 }
+
+
+/* ===== V5.8 吹牛：任何人可抓 + 5分鐘倒數 ===== */
+.liarTimerDisplay{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:64px;
+  margin-left:10px;
+  padding:5px 9px;
+  border-radius:9px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,215,90,.28);
+  color:#ffd95f;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.liarTimerDisplay::before{content:"⏱ "}
+.liarTimerDisplay.urgent{
+  color:#fff;
+  background:#a72e31;
+  border-color:#ff7777;
+  box-shadow:0 0 14px rgba(255,70,70,.55);
+}

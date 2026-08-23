@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.7.0",
+  "version": "5.8.0",
   "private": true,
-  "description": "Card Game Hub V5.7：大老二聊天室輸入固定底部、勝利積分結算畫面與再來一場",
+  "description": "Card Game Hub V5.8：吹牛任何玩家皆可抓吹牛，5分鐘倒數，時間到手牌最少者勝",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

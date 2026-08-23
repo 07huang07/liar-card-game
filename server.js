@@ -43,7 +43,9 @@ function newRoom(code, gameType = "liar") {
     winnerId: null,
     matchRecorded: false,
     log: [],
-    chat: []
+    chat: [],
+    liarDeadline: null,
+    liarTimer: null
   };
 }
 
@@ -157,6 +159,42 @@ function dealStartingCards(room) {
   room.pile = [];
   room.lastPlay = null;
   room.roundRank = null;
+  startLiarTimer(room);
+}
+
+
+function clearLiarTimer(room){
+  if(room && room.liarTimer){
+    clearTimeout(room.liarTimer);
+    room.liarTimer = null;
+  }
+}
+
+function startLiarTimer(room){
+  clearLiarTimer(room);
+  room.liarDeadline = Date.now() + 5 * 60 * 1000;
+
+  room.liarTimer = setTimeout(() => {
+    const liveRoom = rooms.get(room.code);
+    if(!liveRoom || liveRoom.gameType !== "liar" || !liveRoom.started) return;
+
+    let winner = liveRoom.players[0] || null;
+    for(const p of liveRoom.players){
+      if(!winner || p.hand.length < winner.hand.length){
+        winner = p;
+      }
+    }
+    if(!winner) return;
+
+    liveRoom.winnerId = winner.id;
+    liveRoom.started = false;
+    liveRoom.liarDeadline = null;
+    clearLiarTimer(liveRoom);
+
+    liveRoom.log.push(`⏰ 5 分鐘時間到！${winner.name} 以最少手牌（${winner.hand.length} 張）獲勝`);
+    recordMatchResult(liveRoom, winner.id);
+    emitRoom(liveRoom);
+  }, 5 * 60 * 1000);
 }
 
 function recordMatchResult(room, winnerId) {
@@ -721,6 +759,7 @@ io.on("connection", socket => {
     socket.leave(code);
     socket.data.roomCode = null;
     if (!room.players.length) {
+      clearLiarTimer(room);
       rooms.delete(code);
       return cb?.({ ok: true });
     }

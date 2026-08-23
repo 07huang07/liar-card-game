@@ -68,9 +68,9 @@ $("playBtn").onclick=()=>{
 };
 
 $("challengeBtn").onclick=()=>{
-  $("challengeBtn").disabled = true;
+  $("challengeBtn").disabled = !state.canChallenge;
   socket.emit("challenge",{},res=>{
-    $("challengeBtn").disabled = false;
+    $("challengeBtn").disabled = !state.canChallenge;
     if(!res?.ok)setMsg(res?.message||"抓吹牛失敗");
   });
 };
@@ -153,6 +153,33 @@ socket.on("chatMessage", msg => {
   state.chat = [...(state.chat || []), msg].slice(-30);
   renderChat(state.chat);
 });
+
+
+let liarTimerInterval = null;
+
+function updateLiarTimer(){
+  const el = $("liarTimerDisplay");
+  if(!el) return;
+
+  if(!state?.started || !state?.liarDeadline){
+    el.textContent = "05:00";
+    el.classList.remove("urgent");
+    return;
+  }
+
+  const ms = Math.max(0, state.liarDeadline - Date.now());
+  const total = Math.ceil(ms / 1000);
+  const min = Math.floor(total / 60);
+  const sec = total % 60;
+
+  el.textContent = `${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+  el.classList.toggle("urgent", total <= 30);
+}
+
+function ensureLiarTimerTicker(){
+  if(liarTimerInterval) return;
+  liarTimerInterval = setInterval(updateLiarTimer, 500);
+}
 
 function renderState(){
   if(!state)return;
@@ -240,13 +267,15 @@ function renderState(){
     state.challengePlayerId === socket.id &&
     state.lastPlay.playerId !== socket.id;
 
-  $("challengeBtn").classList.toggle("hidden", !canChallenge);
+  $("challengeBtn").classList.toggle("hidden", !state.canChallenge);
   $("challengeArea").classList.toggle("hidden", !canChallenge);
 
   $("log").innerHTML=state.log.map(x=>`<div>${escapeHtml(x)}</div>`).join("");
   $("log").scrollTop=$("log").scrollHeight;
 
   renderChat(state.chat || []);
+  ensureLiarTimerTicker();
+  updateLiarTimer();
   renderHand();
 }
 
