@@ -41,7 +41,8 @@ function newRoom(code) {
     roundRank: null,
     winnerId: null,
     matchRecorded: false,
-    log: []
+    log: [],
+    chat: []
   };
 }
 
@@ -76,7 +77,8 @@ function roomPublicState(room) {
       isTurn: room.started && i === room.turnIndex,
       isWinner: p.id === room.winnerId
     })),
-    log: room.log.slice(-12)
+    log: room.log.slice(-12),
+    chat: room.chat.slice(-30)
   };
 }
 
@@ -110,7 +112,7 @@ function cleanAnimal(animal) {
 }
 
 function cleanCode(code) {
-  return String(code || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+  return String(code || "").replace(/\D/g, "").slice(0, 3);
 }
 
 
@@ -151,7 +153,7 @@ io.on("connection", socket => {
     if (!name) return cb?.({ ok: false, message: "請輸入暱稱" });
 
     let code;
-    do code = Math.random().toString(36).slice(2, 7).toUpperCase();
+    do code = String(Math.floor(100 + Math.random() * 900));
     while (rooms.has(code));
 
     const room = newRoom(code);
@@ -181,6 +183,39 @@ io.on("connection", socket => {
     room.log.push(`${name} 加入了房間`);
     emitRoom(room);
     cb?.({ ok: true, code });
+  });
+
+  socket.on("sendChat", ({ message }, cb) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room) return cb?.({ ok: false, message: "你目前不在房間內" });
+
+    const player = getPlayer(room, socket.id);
+    if (!player) return cb?.({ ok: false, message: "找不到玩家資料" });
+
+    const now = Date.now();
+    if (socket.data.lastChatAt && now - socket.data.lastChatAt < 400) {
+      return cb?.({ ok: false, message: "訊息傳送太快了" });
+    }
+
+    message = String(message || "").replace(/\s+/g, " ").trim().slice(0, 120);
+    if (!message) return cb?.({ ok: false, message: "請輸入訊息" });
+
+    socket.data.lastChatAt = now;
+
+    const chatMessage = {
+      id: `${now}-${socket.id.slice(0, 6)}`,
+      playerId: player.id,
+      name: player.name,
+      animal: player.animal,
+      text: message,
+      ts: now
+    };
+
+    room.chat.push(chatMessage);
+    if (room.chat.length > 30) room.chat.splice(0, room.chat.length - 30);
+
+    io.to(room.code).emit("chatMessage", chatMessage);
+    cb?.({ ok: true });
   });
 
   socket.on("startGame", (_, cb) => {

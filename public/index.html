@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>動物吹牛撲克牌 V3</title>
+  <title>動物吹牛撲克牌 V4.9</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,7 +31,7 @@
       <button id="createBtn">建立房間</button>
       <div class="divider">或</div>
       <label>房間代碼</label>
-      <input id="roomCodeInput" maxlength="6" placeholder="例如：A7K32">
+      <input id="roomCodeInput" maxlength="3" inputmode="numeric" pattern="[0-9]*" placeholder="例如：782">
       <button id="joinBtn" class="secondary">加入房間</button>
       <p id="landingMsg" class="msg"></p>
     </section>
@@ -40,7 +40,7 @@
 <section id="game" class="hidden compactGame">
       <header class="compactTopbar">
         <div class="roomBlock">
-          <strong>房間 <span id="roomCode">-----</span></strong>
+          <strong>房間 <span id="roomCode">000</span></strong>
           <span id="status" class="muted"></span>
         </div>
         <div class="topActions">
@@ -60,6 +60,16 @@
             <div class="miniTitle">遊戲資訊</div>
             <div id="lastPlay" class="lastPlay">目前還沒有人出牌</div>
             <div class="pileText">桌面 <span id="pileCount">0</span> 張</div>
+          </div>
+
+          <div class="miniBox chatBox">
+            <div class="miniTitle">💬 聊天室</div>
+            <div id="chatMessages" class="chatMessages"></div>
+            <div class="chatComposer">
+              <input id="chatInput" maxlength="120" autocomplete="off" placeholder="輸入訊息…">
+              <button id="chatSendBtn" type="button">送出</button>
+            </div>
+            <div id="chatError" class="chatError"></div>
           </div>
 
           <div class="miniBox logBox">

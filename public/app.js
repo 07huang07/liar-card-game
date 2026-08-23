@@ -38,6 +38,11 @@ function nameValue(){return $("name").value.trim();}
 function showGame(code){$("landing").classList.add("hidden");$("game").classList.remove("hidden");$("roomCode").textContent=code;}
 function setMsg(t){$("gameMsg").textContent=t||"";}
 
+$("roomCodeInput").addEventListener("input", () => {
+  $("roomCodeInput").value = $("roomCodeInput").value.replace(/\D/g, "").slice(0, 3);
+});
+
+
 $("createBtn").onclick=()=>socket.emit("createRoom",{name:nameValue(),animal:selectedAnimal},res=>{
   if(!res.ok)return $("landingMsg").textContent=res.message;
   showGame(res.code);
@@ -95,6 +100,56 @@ socket.on("challengeResult", result=>{
   resultTimer = setTimeout(() => {
     overlay.classList.add("hidden");
   }, 2000);
+});
+
+
+function renderChat(messages = []) {
+  const box = $("chatMessages");
+  if (!box) return;
+
+  box.innerHTML = messages.map(m => {
+    const d = new Date(m.ts || Date.now());
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return `<div class="chatMessage ${m.playerId===socket.id?"mine":""}">
+      <div class="chatMeta">${escapeHtml(m.animal || "🐶")} <strong>${escapeHtml(m.name || "玩家")}</strong> <span>${escapeHtml(time)}</span></div>
+      <div class="chatText">${escapeHtml(m.text || "")}</div>
+    </div>`;
+  }).join("");
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendChat() {
+  const input = $("chatInput");
+  const error = $("chatError");
+  const message = input.value.trim();
+  if (!message) return;
+
+  $("chatSendBtn").disabled = true;
+  socket.emit("sendChat", { message }, res => {
+    $("chatSendBtn").disabled = false;
+    if (!res?.ok) {
+      error.textContent = res?.message || "訊息傳送失敗";
+      return;
+    }
+    input.value = "";
+    error.textContent = "";
+    input.focus();
+  });
+}
+
+$("chatSendBtn").onclick = sendChat;
+$("chatInput").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+});
+
+socket.on("chatMessage", msg => {
+  if (!state) return;
+  state.chat = [...(state.chat || []), msg].slice(-30);
+  renderChat(state.chat);
 });
 
 function renderState(){
@@ -189,6 +244,7 @@ function renderState(){
   $("log").innerHTML=state.log.map(x=>`<div>${escapeHtml(x)}</div>`).join("");
   $("log").scrollTop=$("log").scrollHeight;
 
+  renderChat(state.chat || []);
   renderHand();
 }
 

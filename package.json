@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "4.7.0",
+  "version": "4.9.0",
   "private": true,
-  "description": "動物吹牛撲克牌 V4.6：多局勝敗統計、繼續/結束選擇、開發者署名",
+  "description": "動物吹牛撲克牌 V4.9：三位數字房號、房間聊天室、本輪點數與牌堆分離",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
