@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>動物吹牛撲克牌 V4.10</title>
+  <title>動物吹牛撲克牌 V4.11</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -76,6 +76,12 @@
         </aside>
 
         <section class="centerGame">
+          <div class="rankDock">
+            <div id="tableRoundRankBadge" class="tableRoundRankBadge waiting">
+              <span>本輪點數</span>
+              <strong>等待選擇</strong>
+            </div>
+          </div>
           <div class="tableScene compactTableScene">
             <div class="pokerTable compactTable">
               <div id="seat0" class="seat seat-top hidden"></div>
@@ -84,10 +90,7 @@
               <div id="seat3" class="seat seat-bottom hidden"></div>
 
               <div class="tableCenter compactTableCenter">
-                <div id="tableRoundRankBadge" class="tableRoundRankBadge waiting">
-                  <span>本輪點數</span>
-                  <strong>等待選擇</strong>
-                </div>
+                
                 <div id="tableCards" class="tableCards"></div>
               </div>
             </div>

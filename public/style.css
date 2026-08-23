@@ -794,3 +794,196 @@ body { overflow-x: hidden; }
     gap: 6px;
   }
 }
+
+
+/* ===== V4.11：三欄固定版面，避免牌桌擋到操作區 ===== */
+
+/* 主畫面固定三欄：左 / 中 / 右 */
+.gameGrid {
+  display: grid !important;
+  grid-template-columns: 280px minmax(560px, 1fr) 320px !important;
+  gap: 14px !important;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.sidePanel,
+.centerGame,
+.controlPanel {
+  min-width: 0;
+}
+
+/* 中央遊戲區完全限制在自己的欄位內 */
+.centerGame {
+  position: relative;
+  overflow: visible;
+  padding-top: 58px;
+}
+
+/* 牌桌縮窄，不再侵入右側「你的操作」 */
+.tableWrap,
+.gameTable,
+.table {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.gameTable,
+.table {
+  width: 94% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* 本輪點數改成牌桌上方左側獨立 Dock，不壓玩家與牌 */
+.rankDock {
+  position: absolute;
+  top: 4px;
+  left: 18px;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.tableRoundRankBadge {
+  position: static !important;
+  transform: none !important;
+  min-width: 142px;
+  padding: 7px 16px 9px;
+  margin: 0;
+  background: rgba(20,18,14,.96);
+  border: 2px solid #ffd35e;
+  box-shadow: 0 0 18px rgba(255,205,72,.28);
+}
+
+.tableRoundRankBadge span {
+  font-size: 11px;
+}
+
+.tableRoundRankBadge strong {
+  font-size: 34px;
+}
+
+/* 牌桌中央只負責牌堆，不再放點數標示 */
+.compactTableCenter {
+  width: 66% !important;
+  height: 64% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -44%);
+}
+
+.compactTableCenter .tableCards {
+  width: auto !important;
+  max-width: 82% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* 右側操作區永遠在自己欄內，避免被牌桌蓋住 */
+.controlPanel {
+  position: relative;
+  z-index: 20;
+  overflow: hidden;
+}
+
+.controlPanel .miniBox,
+.controlPanel .controlBox,
+.controlPanel > div {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 上、下玩家卡與桌子之間保留安全距離 */
+.playerSeat.top,
+.playerTop,
+.seatTop {
+  z-index: 16;
+}
+
+.playerSeat.bottom,
+.playerBottom,
+.seatBottom {
+  z-index: 16;
+}
+
+/* 左側也保持固定寬度，不讓聊天室向中間擴張 */
+.sidePanel {
+  width: 100%;
+  overflow: hidden;
+}
+
+.chatMessages {
+  overflow-x: hidden;
+}
+
+/* 桌面螢幕較窄時，縮小左右欄而不是讓牌桌疊上去 */
+@media (max-width: 1450px) and (min-width: 901px) {
+  .gameGrid {
+    grid-template-columns: 240px minmax(500px, 1fr) 285px !important;
+    gap: 10px !important;
+  }
+
+  .centerGame {
+    padding-top: 54px;
+  }
+
+  .rankDock {
+    left: 10px;
+  }
+
+  .tableRoundRankBadge {
+    min-width: 124px;
+    padding: 5px 12px 7px;
+  }
+
+  .tableRoundRankBadge strong {
+    font-size: 29px;
+  }
+}
+
+/* 小螢幕改為直向，不允許覆蓋 */
+@media (max-width: 900px) {
+  .gameGrid {
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0;
+  }
+
+  .centerGame {
+    order: 1;
+    padding-top: 58px;
+    min-height: 520px;
+  }
+
+  .sidePanel {
+    order: 2;
+  }
+
+  .controlPanel {
+    order: 3;
+  }
+
+  .rankDock {
+    top: 6px;
+    left: 10px;
+  }
+
+  .gameTable,
+  .table {
+    width: 100% !important;
+  }
+
+  .compactTableCenter {
+    width: 70% !important;
+  }
+}
