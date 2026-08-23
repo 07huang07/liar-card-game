@@ -72,12 +72,22 @@ $("challengeBtn").onclick=()=>{
     return setMsg("目前沒有可以抓的上一手");
   }
 
+  if (state.lastPlay.playerId === socket.id) {
+    return setMsg("不能抓自己剛出的牌");
+  }
+
   $("challengeBtn").disabled = true;
 
   socket.emit("challenge", {}, res => {
     if (!res?.ok) {
       setMsg(res?.message || "抓吹牛失敗");
-      $("challengeBtn").disabled = !(state?.started && state?.lastPlay);
+
+      const stillCan =
+        !!state?.started &&
+        !!state?.lastPlay &&
+        state.lastPlay.playerId !== socket.id;
+
+      $("challengeBtn").disabled = !stillCan;
       return;
     }
 
@@ -255,15 +265,24 @@ function renderState(){
 
   $("tableCards").innerHTML=(state.tableCards||[]).map(()=>`<div class="tableCardBack"></div>`).join("");
 
-  // V5.17：獨立抓吹牛按鈕。
-  // 只要遊戲中且桌上有上一手，所有玩家都看到按鈕。
-  const canChallenge =
-    !!state.started &&
-    !!state.lastPlay;
+  // V5.18：抓吹牛按鈕固定在「你的操作」內，不再因版面/hidden 消失。
+  const hasLastPlay = !!state.started && !!state.lastPlay;
+  const isLastPlayer = hasLastPlay && state.lastPlay.playerId === socket.id;
+  const canChallenge = hasLastPlay && !isLastPlayer;
 
+  $("challengeArea").classList.remove("hidden");
+  $("challengeBtn").classList.remove("hidden");
   $("challengeBtn").disabled = !canChallenge;
-  $("challengeBtn").classList.toggle("hidden", !canChallenge);
-  $("challengeArea").classList.toggle("hidden", !canChallenge);
+
+  if (!state.started) {
+    $("challengeHintText").textContent = "遊戲開始後即可使用";
+  } else if (!state.lastPlay) {
+    $("challengeHintText").textContent = "目前還沒有人出牌";
+  } else if (isLastPlayer) {
+    $("challengeHintText").textContent = "你剛剛出牌，等待其他玩家抓吹牛";
+  } else {
+    $("challengeHintText").textContent = `可以抓 ${state.lastPlay.playerName} 的上一手`;
+  }
 
   $("log").innerHTML=state.log.map(x=>`<div>${escapeHtml(x)}</div>`).join("");
   $("log").scrollTop=$("log").scrollHeight;

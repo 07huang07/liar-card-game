@@ -1417,3 +1417,59 @@ body { overflow-x: hidden; }
 .globalChallengeBox #challengeBtn:disabled {
   opacity: .45;
 }
+
+
+/* ===== V5.18：抓吹牛固定於「你的操作」框內 ===== */
+.challengeInline {
+  display: block !important;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+
+.challengeInlineHead {
+  margin-bottom: 4px;
+  color: #ffd45b;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.challengeInlineText {
+  min-height: 16px;
+  margin-bottom: 7px;
+  color: #aaa;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.challengeInline #challengeBtn {
+  display: block !important;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #b13236;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.challengeInline #challengeBtn:not(:disabled) {
+  cursor: pointer;
+  box-shadow: 0 0 17px rgba(215,55,60,.38);
+}
+
+.challengeInline #challengeBtn:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+/* 避免右側操作區被下方手牌遮住 */
+.controlPanel {
+  align-self: start;
+}
+
+.controlPanel .miniBox {
+  overflow: visible;
+}

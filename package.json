@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.17.0",
+  "version": "5.18.0",
   "private": true,
-  "description": "Card Game Hub V5.17：吹牛改20回合制、獨立全員抓吹牛按鈕、修正liar頁載入錯誤",
+  "description": "Card Game Hub V5.18：吹牛抓吹牛按鈕固定在你的操作區，不再消失",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

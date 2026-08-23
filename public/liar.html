@@ -129,13 +129,13 @@
             <div class="actionButtons">
               <button id="playBtn" class="primaryAction">🃏 出牌</button>
             </div>
-            <p id="gameMsg" class="msg"></p>
-          </div>
+            <div id="challengeArea" class="challengeInline">
+              <div class="challengeInlineHead">📣 抓吹牛</div>
+              <div id="challengeHintText" class="challengeInlineText">目前還沒有人出牌</div>
+              <button id="challengeBtn" class="danger challengeAction" disabled>📣 抓吹牛！</button>
+            </div>
 
-          <div id="challengeArea" class="miniBox globalChallengeBox hidden">
-            <div class="miniTitle">📣 全員挑戰</div>
-            <div class="globalChallengeText">只要有人剛出牌，任何玩家都可以抓吹牛。</div>
-            <button id="challengeBtn" class="danger challengeAction hidden">📣 抓吹牛！</button>
+            <p id="gameMsg" class="msg"></p>
           </div>
         </aside>
       </div>
@@ -177,6 +177,6 @@
   <div class="developerCredit">POWER by hhhyyy</div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/liar.js?v=5.17"></script>
+  <script src="/liar.js?v=5.18"></script>
 </body>
 </html>
