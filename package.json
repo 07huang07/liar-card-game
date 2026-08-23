@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "4.14.0",
+  "version": "5.0.0",
   "private": true,
-  "description": "動物吹牛撲克牌 V4.14：縮小中央牌背並限制牌堆區域，避免遮住玩家資訊",
+  "description": "Card Game Hub V5.0：同一網站支援動物吹牛與大老二多人房間",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

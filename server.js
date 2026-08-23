@@ -30,9 +30,10 @@ function shuffle(arr) {
   return a;
 }
 
-function newRoom(code) {
+function newRoom(code, gameType = "liar") {
   return {
     code,
+    gameType,
     players: [],
     started: false,
     turnIndex: 0,
@@ -49,6 +50,7 @@ function newRoom(code) {
 function roomPublicState(room) {
   return {
     code: room.code,
+    gameType: room.gameType || "liar",
     hostId: room.players[0]?.id || null,
     started: room.started,
     turnIndex: room.turnIndex,
@@ -61,12 +63,21 @@ function roomPublicState(room) {
         ? room.players[room.turnIndex].id
         : null,
     winnerId: room.winnerId,
-    lastPlay: room.lastPlay ? {
-      playerId: room.lastPlay.playerId,
-      playerName: room.lastPlay.playerName,
-      claimRank: room.lastPlay.claimRank,
-      count: room.lastPlay.cards.length
-    } : null,
+    lastPlay: room.lastPlay ? (
+      room.gameType === "big2"
+        ? {
+            playerId: room.lastPlay.playerId,
+            playerName: room.lastPlay.playerName,
+            type: room.lastPlay.type,
+            cards: room.lastPlay.cards
+          }
+        : {
+            playerId: room.lastPlay.playerId,
+            playerName: room.lastPlay.playerName,
+            claimRank: room.lastPlay.claimRank,
+            count: room.lastPlay.cards.length
+          }
+    ) : null,
     players: room.players.map((p, i) => ({
       id: p.id,
       name: p.name,
@@ -78,7 +89,9 @@ function roomPublicState(room) {
       isWinner: p.id === room.winnerId
     })),
     log: room.log.slice(-12),
-    chat: room.chat.slice(-30)
+    chat: room.chat.slice(-30),
+    tablePlays: (room.tablePlays || []).slice(-6),
+    history: (room.history || []).slice(-40)
   };
 }
 
@@ -155,8 +168,91 @@ function recordMatchResult(room, winnerId) {
   room.matchRecorded = true;
 }
 
+
+const BIG2_RANK = { "3":0,"4":1,"5":2,"6":3,"7":4,"8":5,"9":6,"10":7,"J":8,"Q":9,"K":10,"A":11,"2":12 };
+const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
+
+function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
+function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
+function big2Deal(room){
+  const deck=makeDeck();
+  room.players.forEach(p=>p.hand=[]);
+  for(let i=0;i<13;i++) for(const p of room.players) if(deck.length)p.hand.push(deck.pop());
+  room.players.forEach(p=>p.hand=big2Sort(p.hand));
+  room.started=true; room.turnIndex=0; room.lastPlay=null; room.tablePlays=[]; room.history=[]; room.passCount=0; room.winnerId=null; room.matchRecorded=false;
+  // 有梅花 3 的玩家先手；若牌局人數不足 4 仍用同一規則
+  const starter=room.players.findIndex(p=>p.hand.some(c=>c.rank==="3"&&c.suit==="♣"));
+  room.turnIndex=starter>=0?starter:0;
+}
+function big2Groups(cards){
+  const m=new Map();
+  cards.forEach((c,i)=>{if(!m.has(c.rank))m.set(c.rank,[]);m.get(c.rank).push({c,i})});
+  return m;
+}
+function comb(arr,k){
+  const out=[];
+  function rec(start,p){if(p.length===k){out.push([...p]);return}for(let i=start;i<arr.length;i++){p.push(arr[i]);rec(i+1,p);p.pop()}}
+  rec(0,[]);return out;
+}
+function big2FindCombos(hand,type){
+  const groups=big2Groups(hand), out=[];
+  if(type==="pair"){
+    for(const g of groups.values()) for(const pair of comb(g,2)) out.push(pair.map(x=>x.i));
+  }
+  if(type==="fullhouse"){
+    const triples=[...groups.values()].filter(g=>g.length>=3), pairs=[...groups.values()].filter(g=>g.length>=2);
+    for(const t of triples) for(const p of pairs) if(t[0].c.rank!==p[0].c.rank)
+      for(const a of comb(t,3)) for(const b of comb(p,2)) out.push([...a,...b].map(x=>x.i));
+  }
+  if(type==="fourkind"){
+    const fours=[...groups.values()].filter(g=>g.length===4);
+    for(const f of fours){
+      const fi=f.map(x=>x.i);
+      for(let i=0;i<hand.length;i++) if(!fi.includes(i)) out.push([...fi,i]);
+    }
+  }
+  if(type==="straightflush"){
+    for(const suit of Object.keys(BIG2_SUIT)){
+      const suited=hand.map((c,i)=>({c,i})).filter(x=>x.c.suit===suit);
+      for(const five of comb(suited,5)){
+        const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
+        if(vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
+      }
+    }
+  }
+  return out;
+}
+function big2Classify(cards,type){
+  cards=big2Sort(cards);
+  if(type==="single"&&cards.length===1)return {ok:true,type,score:big2CardValue(cards[0])};
+  if(type==="pair"&&cards.length===2&&cards[0].rank===cards[1].rank)return {ok:true,type,score:Math.max(...cards.map(big2CardValue))};
+  if(type==="fullhouse"&&cards.length===5){
+    const counts=[...big2Groups(cards).values()].map(g=>g.length).sort().join(",");
+    if(counts==="2,3"){
+      const triple=[...big2Groups(cards).values()].find(g=>g.length===3);
+      return {ok:true,type,score:BIG2_RANK[triple[0].c.rank]};
+    }
+  }
+  if(type==="fourkind"&&cards.length===5){
+    const four=[...big2Groups(cards).values()].find(g=>g.length===4);
+    if(four)return {ok:true,type,score:BIG2_RANK[four[0].c.rank]};
+  }
+  if(type==="straightflush"&&cards.length===5){
+    const same=cards.every(c=>c.suit===cards[0].suit);
+    const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
+    if(same&&vals.every((v,i)=>i===0||v===vals[i-1]+1))return {ok:true,type,score:vals.at(-1)*4+BIG2_SUIT[cards[0].suit]};
+  }
+  return {ok:false};
+}
+const BIG2_TYPE_POWER={single:0,pair:1,fullhouse:2,fourkind:3,straightflush:4};
+function big2CanBeat(play,last){
+  if(!last)return true;
+  if(play.type!==last.type)return false;
+  return play.score>last.score;
+}
+
 io.on("connection", socket => {
-  socket.on("createRoom", ({ name, animal }, cb) => {
+  socket.on("createRoom", ({ name, animal, gameType = "liar" }, cb) => {
     name = cleanName(name);
     animal = cleanAnimal(animal);
     if (!name) name = generateRandomName();
@@ -165,14 +261,15 @@ io.on("connection", socket => {
     do code = String(Math.floor(100 + Math.random() * 900));
     while (rooms.has(code));
 
-    const room = newRoom(code);
+    gameType = gameType === "big2" ? "big2" : "liar";
+    const room = newRoom(code, gameType);
     room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0 });
     rooms.set(code, room);
     socket.join(code);
     socket.data.roomCode = code;
     room.log.push(`${name} 建立了房間`);
     emitRoom(room);
-    cb?.({ ok: true, code, name });
+    cb?.({ ok: true, code, name, gameType: room.gameType });
   });
 
   socket.on("joinRoom", ({ name, code, animal }, cb) => {
@@ -191,7 +288,7 @@ io.on("connection", socket => {
     socket.data.roomCode = code;
     room.log.push(`${name} 加入了房間`);
     emitRoom(room);
-    cb?.({ ok: true, code, name });
+    cb?.({ ok: true, code, name, gameType: room.gameType });
   });
 
   socket.on("sendChat", ({ message }, cb) => {
@@ -227,9 +324,62 @@ io.on("connection", socket => {
     cb?.({ ok: true });
   });
 
+
+  socket.on("big2Start", (_, cb) => {
+    const room=rooms.get(socket.data.roomCode);
+    if(!room||room.gameType!=="big2")return cb?.({ok:false,message:"這不是大老二房間"});
+    if(room.players[0]?.id!==socket.id)return cb?.({ok:false,message:"只有房主可以開始"});
+    if(room.players.length<2)return cb?.({ok:false,message:"至少需要 2 人"});
+    big2Deal(room); emitRoom(room); cb?.({ok:true});
+  });
+
+  socket.on("big2Combos", ({type}, cb) => {
+    const room=rooms.get(socket.data.roomCode), player=room&&getPlayer(room,socket.id);
+    if(!room||room.gameType!=="big2"||!player)return cb?.({ok:false,message:"房間狀態錯誤"});
+    const combos=big2FindCombos(player.hand,type).slice(0,24).map(indices=>({indices,cards:indices.map(i=>player.hand[i])}));
+    cb?.({ok:true,combos});
+  });
+
+  socket.on("big2Play", ({indices,type}, cb) => {
+    const room=rooms.get(socket.data.roomCode);
+    if(!room||room.gameType!=="big2"||!room.started)return cb?.({ok:false,message:"遊戲尚未開始"});
+    const player=getPlayer(room,socket.id);
+    if(currentPlayer(room)?.id!==socket.id)return cb?.({ok:false,message:"還沒輪到你"});
+    const uniq=[...new Set((indices||[]).map(Number))].filter(i=>Number.isInteger(i)&&i>=0&&i<player.hand.length).sort((a,b)=>a-b);
+    const cards=uniq.map(i=>player.hand[i]);
+    const info=big2Classify(cards,type);
+    if(!info.ok)return cb?.({ok:false,message:"這組牌不符合所選牌型"});
+    if(!big2CanBeat(info,room.lastPlay))return cb?.({ok:false,message:"必須用相同牌型且比上一手大"});
+    // 首手需含梅花3
+    if(!room.history.length&&!cards.some(c=>c.rank==="3"&&c.suit==="♣"))return cb?.({ok:false,message:"第一手必須包含梅花 3"});
+    for(const i of [...uniq].sort((a,b)=>b-a))player.hand.splice(i,1);
+    const play={playerId:player.id,playerName:player.name,type,cards:big2Sort(cards),score:info.score,ts:Date.now()};
+    room.lastPlay=play; room.tablePlays.push(play); room.history.push(play); room.passCount=0;
+    if(player.hand.length===0){
+      room.winnerId=player.id; room.started=false; recordMatchResult(room,player.id);
+    }else nextTurn(room);
+    emitRoom(room); cb?.({ok:true});
+  });
+
+  socket.on("big2Pass", (_, cb) => {
+    const room=rooms.get(socket.data.roomCode);
+    if(!room||room.gameType!=="big2"||!room.started)return cb?.({ok:false,message:"遊戲尚未開始"});
+    if(currentPlayer(room)?.id!==socket.id)return cb?.({ok:false,message:"還沒輪到你"});
+    if(!room.lastPlay)return cb?.({ok:false,message:"目前是新一輪，不能 Pass"});
+    room.passCount=(room.passCount||0)+1; nextTurn(room);
+    // 其他所有玩家都 pass 後，清空上一手，最後出牌者重新先手
+    if(room.passCount>=room.players.length-1){
+      const lastId=room.lastPlay.playerId;
+      room.lastPlay=null; room.tablePlays=[]; room.passCount=0;
+      const idx=room.players.findIndex(p=>p.id===lastId); room.turnIndex=idx>=0?idx:room.turnIndex;
+    }
+    emitRoom(room); cb?.({ok:true});
+  });
+
   socket.on("startGame", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
     if (!room) return;
+    if (room.gameType !== "liar") return cb?.({ ok: false, message: "這不是吹牛房間" });
     if (room.players[0]?.id !== socket.id) return cb?.({ ok: false, message: "只有房主可以開始" });
     if (room.players.length < 2) return cb?.({ ok: false, message: "至少需要 2 人" });
 
@@ -242,7 +392,7 @@ io.on("connection", socket => {
 
   socket.on("playCards", ({ indices, claimRank }, cb) => {
     const room = rooms.get(socket.data.roomCode);
-    if (!room || !room.started) return;
+    if (!room || room.gameType !== "liar" || !room.started) return;
     const player = getPlayer(room, socket.id);
     if (!player || currentPlayer(room)?.id !== socket.id) {
       return cb?.({ ok: false, message: "還沒輪到你" });
@@ -285,7 +435,7 @@ io.on("connection", socket => {
 
   socket.on("challenge", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
-    if (!room || !room.started || !room.lastPlay) {
+    if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
       return cb?.({ ok: false, message: "目前沒有可以抓的上一手" });
     }
 

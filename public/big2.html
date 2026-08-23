@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>大老二｜Card Game Hub V5.0</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/big2.css">
+</head>
+<body>
+<section id="big2Landing" class="big2Landing">
+  <div class="big2LandingCard">
+    <a class="backHub" href="/">← 回遊戲大廳</a>
+    <h1>♠️ 大老二</h1>
+    <p>最多 4 人，即時多人房間</p>
+    <label>暱稱</label>
+    <input id="big2Name" maxlength="16" placeholder="可留空，系統會自動產生">
+    <div class="animalPicker" id="big2Animals">
+      <button data-animal="🐶" class="active">🐶</button><button data-animal="🐱">🐱</button>
+      <button data-animal="🐰">🐰</button><button data-animal="🦊">🦊</button>
+      <button data-animal="🐼">🐼</button><button data-animal="🐯">🐯</button>
+      <button data-animal="🐸">🐸</button><button data-animal="🐵">🐵</button>
+    </div>
+    <div class="big2LandingActions">
+      <button id="big2Create">建立大老二房間</button>
+      <div class="joinRow"><input id="big2RoomCode" maxlength="3" inputmode="numeric" placeholder="三位房號"><button id="big2Join">加入</button></div>
+    </div>
+    <div id="big2LandingMsg" class="landingMsg"></div>
+  </div>
+</section>
+
+<section id="big2Game" class="big2Game hidden">
+  <header class="big2Top">
+    <div><strong>房間 <span id="big2Code">000</span></strong>　<span id="big2Status">等待開始</span></div>
+    <div><button id="big2Exit" class="exitGameBtn">退出遊戲</button><button id="big2Copy">複製房號</button></div>
+  </header>
+
+  <div class="big2Grid">
+    <aside class="big2Left">
+      <div class="big2Box">
+        <h3>🏆 排行榜</h3>
+        <div id="big2Leaderboard"></div>
+      </div>
+      <div class="big2Box historyBox">
+        <h3>📋 出牌紀錄</h3>
+        <div id="big2History" class="big2History"></div>
+      </div>
+      <div class="big2Box chatBox">
+        <h3>💬 聊天室</h3>
+        <div id="big2Chat" class="big2Chat"></div>
+        <div class="big2ChatRow"><input id="big2ChatInput" maxlength="120" placeholder="輸入訊息…"><button id="big2ChatSend">送出</button></div>
+      </div>
+    </aside>
+
+    <main class="big2Center">
+      <div id="big2Seats" class="big2Seats">
+        <div id="b2Seat0" class="b2Seat top hidden"></div>
+        <div id="b2Seat1" class="b2Seat left hidden"></div>
+        <div id="b2Seat2" class="b2Seat right hidden"></div>
+        <div id="b2Seat3" class="b2Seat bottom hidden"></div>
+      </div>
+      <div class="big2Table">
+        <div id="lastPlayLabel" class="lastPlayLabel">等待第一手</div>
+        <div id="big2Stack" class="big2Stack"></div>
+      </div>
+    </main>
+
+    <aside class="big2Right">
+      <div id="big2HostBox" class="big2Box">
+        <h3>房主操作</h3>
+        <button id="big2Start" class="startBtnStandalone">▶ 開始遊戲</button>
+        <div class="hint">至少 2 位玩家即可開始</div>
+      </div>
+      <div class="big2Box">
+        <h3>你的操作</h3>
+        <div class="typeTitle">選擇牌型</div>
+        <div class="typeGrid">
+          <button class="typeBtn" data-type="pair">對子</button>
+          <button class="typeBtn" data-type="fullhouse">葫蘆</button>
+          <button class="typeBtn" data-type="fourkind">鐵支</button>
+          <button class="typeBtn" data-type="straightflush">同花順</button>
+        </div>
+        <div class="hint">單張不用選牌型，直接點 1 張牌即可。</div>
+        <button id="big2Play" class="big2PlayBtn">🎴 出牌</button>
+        <button id="big2Pass" class="big2PassBtn">Pass</button>
+        <div id="big2Msg" class="big2Msg"></div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="big2HandDock">
+    <div class="handHeader">你的手牌 <span id="big2HandCount">（0 張）</span></div>
+    <div id="big2Hand" class="big2Hand"></div>
+    <div class="brand">POWER by hhhyyy</div>
+  </section>
+</section>
+
+<div id="comboOverlay" class="comboOverlay hidden">
+  <div class="comboCard">
+    <h2>選擇要出的組合</h2>
+    <p>這個牌型有多個可用組合，請選一組預覽。</p>
+    <div id="comboOptions" class="comboOptions"></div>
+    <button id="comboCancel">取消</button>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/big2.js"></script>
+</body>
+</html>
