@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "4.13.0",
+  "version": "4.14.0",
   "private": true,
-  "description": "動物吹牛撲克牌 V4.13：上下玩家卡收進牌桌避免遮住手牌，暱稱留空時自動隨機生成",
+  "description": "動物吹牛撲克牌 V4.14：縮小中央牌背並限制牌堆區域，避免遮住玩家資訊",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

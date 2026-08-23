@@ -1187,3 +1187,147 @@ body { overflow-x: hidden; }
     bottom: 5px !important;
   }
 }
+
+
+/* ===== V4.14：牌桌中央牌背縮小，避免遮住玩家資訊 ===== */
+
+/* 中央牌堆區域縮小並固定在牌桌真正中央 */
+.compactTableCenter {
+  width: 54% !important;
+  height: 44% !important;
+  max-width: 520px !important;
+  max-height: 300px !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  z-index: 10 !important;
+}
+
+/* 牌堆排列區限制最大範圍，不會延伸到上下玩家卡 */
+.compactTableCenter .tableCards {
+  width: 100% !important;
+  max-width: 460px !important;
+  max-height: 250px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+}
+
+/* 藍色牌背統一縮小 */
+.compactTableCenter .tableCard,
+.compactTableCenter .cardBack,
+.compactTableCenter .tableCards > div {
+  width: 58px !important;
+  height: 82px !important;
+  min-width: 58px !important;
+  min-height: 82px !important;
+  max-width: 58px !important;
+  max-height: 82px !important;
+  flex: 0 0 58px !important;
+  box-sizing: border-box !important;
+}
+
+/* 如果牌背是 img 或 button，也一起限制 */
+.compactTableCenter .tableCards img,
+.compactTableCenter .tableCards button {
+  width: 58px !important;
+  height: 82px !important;
+  max-width: 58px !important;
+  max-height: 82px !important;
+  object-fit: cover !important;
+}
+
+/* 玩家資訊永遠在牌堆上層，而且與中央牌堆保留距離 */
+.compactTable .seat-top,
+.compactTable .seat-bottom,
+.compactTable .seat-left,
+.compactTable .seat-right {
+  z-index: 30 !important;
+}
+
+.compactTable .seat-top {
+  top: 6px !important;
+}
+
+.compactTable .seat-bottom {
+  bottom: 6px !important;
+}
+
+/* 桌面版稍微讓牌桌更有留白 */
+@media (min-width: 1200px) {
+  .compactTableCenter {
+    width: 50% !important;
+    height: 42% !important;
+  }
+
+  .compactTableCenter .tableCards {
+    max-width: 430px !important;
+  }
+}
+
+/* 中型螢幕進一步縮小牌背 */
+@media (max-width: 1450px) and (min-width: 901px) {
+  .compactTableCenter {
+    width: 52% !important;
+    height: 42% !important;
+    max-width: 430px !important;
+  }
+
+  .compactTableCenter .tableCard,
+  .compactTableCenter .cardBack,
+  .compactTableCenter .tableCards > div,
+  .compactTableCenter .tableCards img,
+  .compactTableCenter .tableCards button {
+    width: 52px !important;
+    height: 74px !important;
+    min-width: 52px !important;
+    min-height: 74px !important;
+    max-width: 52px !important;
+    max-height: 74px !important;
+    flex-basis: 52px !important;
+  }
+
+  .compactTableCenter .tableCards {
+    gap: 7px !important;
+    max-width: 390px !important;
+  }
+}
+
+/* 小螢幕／手機：再縮小一階 */
+@media (max-width: 900px) {
+  .compactTableCenter {
+    width: 58% !important;
+    height: 38% !important;
+    max-width: 330px !important;
+  }
+
+  .compactTableCenter .tableCard,
+  .compactTableCenter .cardBack,
+  .compactTableCenter .tableCards > div,
+  .compactTableCenter .tableCards img,
+  .compactTableCenter .tableCards button {
+    width: 46px !important;
+    height: 66px !important;
+    min-width: 46px !important;
+    min-height: 66px !important;
+    max-width: 46px !important;
+    max-height: 66px !important;
+    flex-basis: 46px !important;
+  }
+
+  .compactTableCenter .tableCards {
+    gap: 5px !important;
+    max-width: 300px !important;
+    padding: 5px !important;
+  }
+}
