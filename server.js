@@ -65,6 +65,8 @@ function roomPublicState(room) {
         ? room.players[room.turnIndex].id
         : null,
     winnerId: room.winnerId,
+    challengePlayerId: null,
+    canChallenge: room.gameType === "liar" && room.started && !!room.lastPlay,
     lastPlay: room.lastPlay ? (
       room.gameType === "big2"
         ? {
@@ -659,7 +661,12 @@ io.on("connection", socket => {
 
   socket.on("challenge", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
+    
+    // V5.10：任何房內玩家都可以抓吹牛，不限制是否輪到他。
     if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
+      return cb?.({ ok: false, message: "目前不能抓吹牛" });
+    }
+if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
       return cb?.({ ok: false, message: "目前沒有可以抓的上一手" });
     }
 

@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.8.0",
+  "version": "5.10.0",
   "private": true,
-  "description": "Card Game Hub V5.8：吹牛任何玩家皆可抓吹牛，5分鐘倒數，時間到手牌最少者勝",
+  "description": "Card Game Hub V5.10：吹牛所有房內玩家皆可抓吹牛，不再限制上家或當前回合玩家",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

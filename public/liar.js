@@ -78,7 +78,8 @@ $("challengeBtn").onclick=()=>{
 $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
-socket.on("roomState",next=>{state=next;renderState();});
+socket.on("roomState",next=>{state=next;
+  startLiarCountdownTicker();renderState();});
 
 socket.on("challengeResult", result=>{
   const overlay=$("resultOverlay");
@@ -155,33 +156,47 @@ socket.on("chatMessage", msg => {
 });
 
 
+
 let liarTimerInterval = null;
 
 function updateLiarTimer(){
   const el = $("liarTimerDisplay");
   if(!el) return;
 
-  if(!state?.started || !state?.liarDeadline){
+  if(!state || !state.started || !state.liarDeadline){
     el.textContent = "05:00";
     el.classList.remove("urgent");
     return;
   }
 
-  const ms = Math.max(0, state.liarDeadline - Date.now());
-  const total = Math.ceil(ms / 1000);
-  const min = Math.floor(total / 60);
-  const sec = total % 60;
+  const remainingMs = Math.max(0, Number(state.liarDeadline) - Date.now());
+  const totalSeconds = Math.floor(remainingMs / 1000);
 
-  el.textContent = `${String(min).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-  el.classList.toggle("urgent", total <= 30);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  el.textContent =
+    `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+
+  el.classList.toggle("urgent", totalSeconds <= 30);
+
+  if(totalSeconds <= 0){
+    el.textContent = "00:00";
+  }
 }
 
-function ensureLiarTimerTicker(){
-  if(liarTimerInterval) return;
-  liarTimerInterval = setInterval(updateLiarTimer, 500);
+function startLiarCountdownTicker(){
+  if(liarTimerInterval){
+    clearInterval(liarTimerInterval);
+  }
+
+
+  liarTimerInterval = setInterval(() => {
+    }, 500);
 }
 
 function renderState(){
+  updateLiarTimer();
   if(!state)return;
   $("roomCode").textContent=state.code;
   $("pileCount").textContent=state.pileCount;
@@ -274,8 +289,6 @@ function renderState(){
   $("log").scrollTop=$("log").scrollHeight;
 
   renderChat(state.chat || []);
-  ensureLiarTimerTicker();
-  updateLiarTimer();
   renderHand();
 }
 
@@ -337,3 +350,7 @@ socket.on("sessionEnded", () => {
 function escapeHtml(s){
   return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
+
+
+// V5.9：確保頁面載入後倒數持續刷新
+startLiarCountdownTicker();
