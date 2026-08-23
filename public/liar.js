@@ -79,7 +79,8 @@ $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
 socket.on("roomState",next=>{state=next;
-  startLiarCountdownTicker();renderState();});
+  restartLiarCountdownTicker();
+renderState();});
 
 socket.on("challengeResult", result=>{
   const overlay=$("resultOverlay");
@@ -157,46 +158,51 @@ socket.on("chatMessage", msg => {
 
 
 
+
 let liarTimerInterval = null;
 
-function updateLiarTimer(){
+function renderLiarCountdown() {
   const el = $("liarTimerDisplay");
-  if(!el) return;
+  if (!el) return;
 
-  if(!state || !state.started || !state.liarDeadline){
+  // 尚未開始前固定顯示 05:00，但不自行倒數。
+  if (!state?.started || !state?.liarDeadline) {
     el.textContent = "05:00";
     el.classList.remove("urgent");
     return;
   }
 
-  const remainingMs = Math.max(0, Number(state.liarDeadline) - Date.now());
-  const totalSeconds = Math.floor(remainingMs / 1000);
+  const deadline = Number(state.liarDeadline);
+  const remainingMs = Math.max(0, deadline - Date.now());
 
+  // 用 ceil 可確保剛按下開始時先顯示完整 05:00。
+  const totalSeconds = Math.ceil(remainingMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
 
   el.textContent =
-    `${String(minutes).padStart(2,"0")}:${String(seconds).padStart(2,"0")}`;
+    `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-  el.classList.toggle("urgent", totalSeconds <= 30);
+  el.classList.toggle("urgent", totalSeconds <= 30 && totalSeconds > 0);
 
-  if(totalSeconds <= 0){
+  if (totalSeconds <= 0) {
     el.textContent = "00:00";
   }
 }
 
-function startLiarCountdownTicker(){
-  if(liarTimerInterval){
+function restartLiarCountdownTicker() {
+  if (liarTimerInterval) {
     clearInterval(liarTimerInterval);
   }
 
+  // 收到 startGame 後的 roomState 時立刻刷新一次。
 
   liarTimerInterval = setInterval(() => {
-    }, 500);
+    }, 250);
 }
 
 function renderState(){
-  updateLiarTimer();
+  renderLiarCountdown();
   if(!state)return;
   $("roomCode").textContent=state.code;
   $("pileCount").textContent=state.pileCount;
@@ -353,4 +359,9 @@ function escapeHtml(s){
 
 
 // V5.9：確保頁面載入後倒數持續刷新
-startLiarCountdownTicker();
+
+
+// V5.11：頁面載入後只負責刷新畫面；真正 deadline 由開始遊戲事件取得。
+restartLiarCountdownTicker();
+
+// V5.12：抓吹牛按鈕權限只看 state.canChallenge，所有房內玩家共用。

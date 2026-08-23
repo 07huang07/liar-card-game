@@ -1355,3 +1355,10 @@ body { overflow-x: hidden; }
   border-color:#ff7777;
   box-shadow:0 0 14px rgba(255,70,70,.55);
 }
+
+
+/* ===== V5.11 倒數計時顯示強化 ===== */
+.liarTimerDisplay {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .5px;
+}

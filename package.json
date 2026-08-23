@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.10.0",
+  "version": "5.12.0",
   "private": true,
-  "description": "Card Game Hub V5.10：吹牛所有房內玩家皆可抓吹牛，不再限制上家或當前回合玩家",
+  "description": "Card Game Hub V5.12：修正吹牛抓牌權限，所有房內玩家都可抓吹牛",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
