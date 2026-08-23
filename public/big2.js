@@ -9,6 +9,7 @@ let selectedType = null;
 let pendingCombos = [];
 let lastAutoPreviewKey = "";
 let comboOverlayOpenedByAuto = false;
+let lastRenderedHistoryCount = 0;
 
 document.querySelectorAll("#big2Animals button").forEach(btn=>{
   btn.onclick=()=>{
@@ -98,7 +99,7 @@ function renderSeats(){
   const pos=["top","left","right","bottom"];
   a.forEach(([i,p])=>{
     const s=seats[i]; s.className=`b2Seat ${pos[i]} ${p.isTurn?"turn":""}`;
-    s.innerHTML=`<div class="avatar">${esc(p.animal)}</div><div class="name">${esc(p.name)}${p.id===socket.id?"（你）":""}</div><div class="count">${p.cardCount} 張牌</div><div class="record">勝 ${p.wins||0}｜敗 ${p.losses||0}</div>`;
+    s.innerHTML=`<div class="avatar">${esc(p.animal)}</div><div class="name">${esc(p.name)}${p.id===socket.id?"（你）":""}</div><div class="count">${p.cardCount} 張牌</div><div class="record">積分 ${p.points||0}｜勝 ${p.wins||0}</div>`;
   });
 }
 function renderStack(){
@@ -124,11 +125,33 @@ function renderStack(){
   }
 }
 function renderHistory(){
-  $("big2History").innerHTML=(state.history||[]).slice().reverse().map(h=>`<div class="historyItem"><strong>${esc(h.playerName)}</strong>　${typeLabel(h.type)}<div class="historyCards">${h.cards.map(cardText).join(" ")}</div></div>`).join("");
+  const box=$("big2History");
+  const history=state.history||[];
+
+  // 由舊到新排列，最新出牌固定在最下面。
+  box.innerHTML=history.map(h=>`<div class="historyItem"><strong>${esc(h.playerName)}</strong>　${typeLabel(h.type)}<div class="historyCards">${h.cards.map(cardText).join(" ")}</div></div>`).join("");
+
+  // 只有真的多一筆新紀錄時才自動移到底部；
+  // 玩家仍可用滾輪往上查看之前的出牌。
+  if(history.length!==lastRenderedHistoryCount){
+    box.scrollTop=box.scrollHeight;
+    lastRenderedHistoryCount=history.length;
+  }
 }
 function renderLeaderboard(){
-  const ps=[...state.players].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0));
-  $("big2Leaderboard").innerHTML=ps.map((p,i)=>`<div class="leaderRow"><span>${["🥇","🥈","🥉","4️⃣"][i]}</span><span class="leaderName">${esc(p.animal)} ${esc(p.name)}</span><strong>${p.wins||0}勝</strong><span>${p.losses||0}敗</span></div>`).join("");
+  const ps=[...state.players].sort((a,b)=>
+    (b.points||0)-(a.points||0) ||
+    (b.wins||0)-(a.wins||0) ||
+    String(a.name).localeCompare(String(b.name))
+  );
+
+  $("big2Leaderboard").innerHTML=ps.map((p,i)=>`
+    <div class="leaderRow">
+      <span>${["🥇","🥈","🥉","4️⃣"][i]||i+1}</span>
+      <span class="leaderName">${esc(p.animal)} ${esc(p.name)}</span>
+      <strong>${p.points||0}分</strong>
+      <span>${p.wins||0}勝</span>
+    </div>`).join("");
 }
 function renderChat(msgs=[]){
   $("big2Chat").innerHTML=msgs.map(m=>`<div class="big2ChatMsg"><strong>${esc(m.animal)} ${esc(m.name)}</strong>：${esc(m.text)}</div>`).join("");
@@ -216,7 +239,15 @@ function render(){
   if(!state)return;
   $("big2Code").textContent=state.code;
   const cur=state.players[state.turnIndex];
-  $("big2Status").textContent=state.started?`輪到：${cur?.animal||""} ${cur?.name||""}`:`等待開始，目前 ${state.players.length} 人`;
+  if(state.started){
+    $("big2Status").textContent=`輪到：${cur?.animal||""} ${cur?.name||""}`;
+  }else if(state.winnerId){
+    const winner=state.players.find(p=>p.id===state.winnerId);
+    const gain=state.scoreSummary?.winnerGain||0;
+    $("big2Status").textContent=`本局結束：${winner?.animal||""} ${winner?.name||"玩家"} 勝利，+${gain} 分`;
+  }else{
+    $("big2Status").textContent=`等待開始，目前 ${state.players.length} 人`;
+  }
   $("big2HostBox").classList.toggle("hidden",state.started||state.hostId!==socket.id);
   renderSeats();renderStack();renderHistory();renderLeaderboard();renderChat(state.chat||[]);
   autoPreviewForCurrentTurn();

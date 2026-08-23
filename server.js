@@ -85,6 +85,7 @@ function roomPublicState(room) {
       animal: p.animal,
       wins: p.wins || 0,
       losses: p.losses || 0,
+      points: p.points || 0,
       cardCount: p.hand.length,
       isTurn: room.started && i === room.turnIndex,
       isWinner: p.id === room.winnerId
@@ -92,7 +93,8 @@ function roomPublicState(room) {
     log: room.log.slice(-12),
     chat: room.chat.slice(-30),
     tablePlays: (room.tablePlays || []).slice(-6),
-    history: (room.history || []).slice(-40)
+    history: (room.history || []).slice(-40),
+    scoreSummary: room.scoreSummary || null
   };
 }
 
@@ -198,6 +200,7 @@ function big2Deal(room){
   room.passCount = 0;
   room.winnerId = null;
   room.matchRecorded = false;
+  room.scoreSummary = null;
 
   // 大老二首手仍由持有梅花 3 的玩家先出。
   const starter = room.players.findIndex(
@@ -290,6 +293,82 @@ function big2Classify(cards,type){
   return {ok:false};
 }
 const BIG2_TYPE_POWER={single:0,pair:1,straight:2,fullhouse:3,fourkind:4,straightflush:5};
+
+function big2PenaltyForHand(hand){
+  let penalty = 0;
+  let twos = 0;
+  let aces = 0;
+  let others = 0;
+
+  for(const card of hand){
+    if(card.rank === "2"){
+      penalty += 5;
+      twos += 1;
+    }else if(card.rank === "A"){
+      penalty += 3;
+      aces += 1;
+    }else{
+      penalty += 1;
+      others += 1;
+    }
+  }
+
+  return { penalty, twos, aces, others };
+}
+
+function big2RecordScore(room, winnerId){
+  if(room.matchRecorded) return;
+
+  const winner = room.players.find(p=>p.id===winnerId);
+  if(!winner) return;
+
+  let winnerGain = 0;
+  const details = [];
+
+  for(const p of room.players){
+    p.points = p.points || 0;
+
+    if(p.id === winnerId) continue;
+
+    const result = big2PenaltyForHand(p.hand);
+    p.points -= result.penalty;
+    winnerGain += result.penalty;
+
+    details.push({
+      playerId: p.id,
+      playerName: p.name,
+      delta: -result.penalty,
+      remainingCards: p.hand.length,
+      twos: result.twos,
+      aces: result.aces,
+      others: result.others
+    });
+  }
+
+  winner.points = (winner.points || 0) + winnerGain;
+  winner.wins = (winner.wins || 0) + 1;
+
+  details.push({
+    playerId: winner.id,
+    playerName: winner.name,
+    delta: winnerGain,
+    remainingCards: 0,
+    twos: 0,
+    aces: 0,
+    others: 0
+  });
+
+  room.scoreSummary = {
+    winnerId: winner.id,
+    winnerName: winner.name,
+    winnerGain,
+    details,
+    ts: Date.now()
+  };
+
+  room.matchRecorded = true;
+}
+
 function big2CanBeat(play,last){
   if(!last)return true;
   if(play.type!==last.type)return false;
@@ -308,7 +387,7 @@ io.on("connection", socket => {
 
     gameType = gameType === "big2" ? "big2" : "liar";
     const room = newRoom(code, gameType);
-    room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0 });
+    room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0, points: 0 });
     rooms.set(code, room);
     socket.join(code);
     socket.data.roomCode = code;
@@ -328,7 +407,7 @@ io.on("connection", socket => {
     if (room.started) return cb?.({ ok: false, message: "遊戲已開始" });
     if (room.players.length >= 4) return cb?.({ ok: false, message: "房間已滿（最多 4 人）" });
 
-    room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0 });
+    room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0, points: 0 });
     socket.join(code);
     socket.data.roomCode = code;
     room.log.push(`${name} 加入了房間`);
@@ -438,8 +517,13 @@ io.on("connection", socket => {
     const play={playerId:player.id,playerName:player.name,type,cards:big2Sort(cards),score:info.score,ts:Date.now()};
     room.lastPlay=play; room.tablePlays.push(play); room.history.push(play); room.passCount=0;
     if(player.hand.length===0){
-      room.winnerId=player.id; room.started=false; recordMatchResult(room,player.id);
-    }else nextTurn(room);
+      // 只要任何一位玩家出完牌，本局立刻結束並結算積分。
+      room.winnerId = player.id;
+      room.started = false;
+      big2RecordScore(room, player.id);
+    }else{
+      nextTurn(room);
+    }
     emitRoom(room); cb?.({ok:true});
   });
 

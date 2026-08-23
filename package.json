@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.5.0",
+  "version": "5.6.0",
   "private": true,
-  "description": "Card Game Hub V5.5：大老二修正10與字牌版面、只預覽合法壓牌、自動預覽上一手牌型並提示Pass",
+  "description": "Card Game Hub V5.6：大老二積分制、積分排行榜、最新出牌紀錄與緊湊聊天室",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

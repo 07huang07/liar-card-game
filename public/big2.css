@@ -555,3 +555,46 @@ body{background:#1b1009;color:#fff}
 .comboCard {
   max-height: 76vh !important;
 }
+
+
+/* ===== V5.6：積分排行榜 / 最新出牌紀錄 / 緊湊聊天室 ===== */
+
+/* 出牌紀錄維持可捲動，但最新紀錄由 JS 自動停在最下方 */
+.big2History {
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+}
+
+/* 聊天輸入欄與送出鍵縮小 */
+.big2ChatRow {
+  grid-template-columns: minmax(0, 1fr) 42px !important;
+  gap: 4px !important;
+  margin-top: 4px !important;
+}
+.big2ChatRow input {
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 4px 7px !important;
+  font-size: 10px !important;
+  border-radius: 7px !important;
+  box-sizing: border-box !important;
+}
+.big2ChatRow button {
+  height: 30px !important;
+  min-height: 30px !important;
+  padding: 3px 4px !important;
+  font-size: 10px !important;
+  border-radius: 7px !important;
+}
+
+/* 玩家卡的積分與勝場保持在一行 */
+.b2Seat .record {
+  white-space: nowrap;
+  color: #ffd65a;
+}
+
+/* 排行榜優先突出積分 */
+#big2Leaderboard .leaderRow strong {
+  color: #ffd65a;
+  white-space: nowrap;
+}
