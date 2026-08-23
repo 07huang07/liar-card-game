@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>動物吹牛撲克牌 V3</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <section id="landing" class="panel landing">
+      <div class="logo">🃏</div>
+      <h1>動物吹牛撲克牌</h1>
+      <p class="muted">同一輪只能宣稱同一個點數，直到有人抓吹牛。</p>
+
+      <label>你的暱稱</label>
+      <input id="name" maxlength="16" placeholder="例如：小明">
+
+      <label>選擇你的動物</label>
+      <div class="animalPicker">
+        <button class="animal active" data-animal="🐶">🐶<span>狗狗</span></button>
+        <button class="animal" data-animal="🐱">🐱<span>貓咪</span></button>
+        <button class="animal" data-animal="🐰">🐰<span>兔子</span></button>
+        <button class="animal" data-animal="🦊">🦊<span>狐狸</span></button>
+        <button class="animal" data-animal="🐼">🐼<span>熊貓</span></button>
+        <button class="animal" data-animal="🐯">🐯<span>老虎</span></button>
+        <button class="animal" data-animal="🐸">🐸<span>青蛙</span></button>
+        <button class="animal" data-animal="🐵">🐵<span>猴子</span></button>
+      </div>
+
+      <button id="createBtn">建立房間</button>
+      <div class="divider">或</div>
+      <label>房間代碼</label>
+      <input id="roomCodeInput" maxlength="6" placeholder="例如：A7K32">
+      <button id="joinBtn" class="secondary">加入房間</button>
+      <p id="landingMsg" class="msg"></p>
+    </section>
+
+    
+<section id="game" class="hidden compactGame">
+      <header class="compactTopbar">
+        <div class="roomBlock">
+          <strong>房間 <span id="roomCode">-----</span></strong>
+          <span id="status" class="muted"></span>
+        </div>
+        <div class="topActions">
+          <button id="copyBtn" class="small secondary">複製房號</button>
+        </div>
+      </header>
+
+      <div class="gameGrid">
+        <aside class="sidePanel">
+          <div class="miniBox">
+            <div class="miniTitle">遊戲資訊</div>
+            <div id="roundRankBadge" class="roundSuit">尚未決定點數</div>
+            <div id="lastPlay" class="lastPlay">目前還沒有人出牌</div>
+            <div class="pileText">桌面 <span id="pileCount">0</span> 張</div>
+          </div>
+
+          <div class="miniBox logBox">
+            <div class="miniTitle">紀錄</div>
+            <div id="log" class="log"></div>
+          </div>
+        </aside>
+
+        <section class="centerGame">
+          <div class="tableScene compactTableScene">
+            <div class="pokerTable compactTable">
+              <div id="seat0" class="seat seat-top hidden"></div>
+              <div id="seat1" class="seat seat-left hidden"></div>
+              <div id="seat2" class="seat seat-right hidden"></div>
+              <div id="seat3" class="seat seat-bottom hidden"></div>
+
+              <div class="tableCenter compactTableCenter">
+                <div id="tableCards" class="tableCards"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="startArea">
+            <button id="startBtn">開始遊戲</button>
+          </div>
+        </section>
+
+        <aside class="controlPanel">
+          <div class="miniBox">
+            <div class="miniTitle">你的操作</div>
+            <label>本輪點數</label>
+            <div id="rankPicker" class="rankPicker" aria-label="選擇本輪點數">
+              <button type="button" class="rankBtn active" data-rank="A">A</button>
+              <button type="button" class="rankBtn" data-rank="2">2</button>
+              <button type="button" class="rankBtn" data-rank="3">3</button>
+              <button type="button" class="rankBtn" data-rank="4">4</button>
+              <button type="button" class="rankBtn" data-rank="5">5</button>
+              <button type="button" class="rankBtn" data-rank="6">6</button>
+              <button type="button" class="rankBtn" data-rank="7">7</button>
+              <button type="button" class="rankBtn" data-rank="8">8</button>
+              <button type="button" class="rankBtn" data-rank="9">9</button>
+              <button type="button" class="rankBtn" data-rank="10">10</button>
+              <button type="button" class="rankBtn" data-rank="J">J</button>
+              <button type="button" class="rankBtn" data-rank="Q">Q</button>
+              <button type="button" class="rankBtn" data-rank="K">K</button>
+            </div>
+            <input id="claimRank" type="hidden" value="A">
+            <div id="suitHint" class="muted smallText">新一輪第一位玩家可以自由決定點數。</div>
+            <div class="actionButtons">
+              <button id="playBtn" class="primaryAction">🃏 出牌</button>
+              <button id="challengeBtn" class="danger challengeAction hidden">📣 抓吹牛！</button>
+            </div>
+            <div id="challengeArea" class="challengeHint hidden">現在可以挑戰上一位玩家</div>
+            <p id="gameMsg" class="msg"></p>
+          </div>
+        </aside>
+      </div>
+
+      <section class="handDock">
+        <div class="handHeader">
+          <strong>你的手牌 <span id="handCount"></span></strong>
+          <span class="muted">點牌後按「出牌」</span>
+        </div>
+        <div id="hand" class="hand compactHand"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="resultOverlay" class="resultOverlay hidden">
+    <div id="resultCard" class="resultCard">
+      <div id="resultEmoji" class="resultEmoji">🎉</div>
+      <h2 id="resultTitle">抓吹牛成功！</h2>
+      <div id="revealCards" class="revealCards"></div>
+      <p id="resultText"></p>
+      <button id="closeResultBtn" class="hidden">繼續遊戲</button>
+    </div>
+  </div>
+
+
+  <div id="matchEndOverlay" class="matchEndOverlay hidden">
+    <div class="matchEndCard">
+      <div class="matchEndTrophy">🏆</div>
+      <h2 id="matchEndTitle">本場結束</h2>
+      <p id="matchEndText"></p>
+      <div id="matchStats" class="matchStats"></div>
+      <div class="matchEndActions">
+        <button id="continueMatchBtn">繼續下一場</button>
+        <button id="endSessionBtn" class="secondary">結束遊戲</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="developerCredit">POWER by hhhyyy</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
