@@ -49,7 +49,24 @@ function renderHand(){
     const b=document.createElement("button");
     b.className=`big2HandCard ${red(c)?"red":""} ${selected.has(i)?"selected":""}`;
     b.innerHTML=`<span class="b2CardSuit">${c.suit}</span><span class="b2CardRank">${c.rank}</span>`;
-    b.onclick=()=>{selected.has(i)?selected.delete(i):selected.add(i);renderHand()};
+
+    // 單擊仍保留選取效果，方便玩家查看或日後擴充。
+    b.onclick=()=>{
+      selected.has(i)?selected.delete(i):selected.add(i);
+      renderHand();
+    };
+
+    // V5.4：雙擊單張牌直接出牌，不需要再按「出牌」。
+    b.ondblclick=(e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      if(!state?.started){
+        $("big2Msg").textContent="遊戲尚未開始";
+        return;
+      }
+      submitPlay([i],"single");
+    };
+
     $("big2Hand").appendChild(b);
   });
 }
@@ -124,25 +141,57 @@ $("big2ChatInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sendChat
 function sendChat(){const text=$("big2ChatInput").value.trim();if(!text)return;socket.emit("sendChat",{message:text},r=>{if(r?.ok)$("big2ChatInput").value=""})}
 
 $("big2Play").onclick=()=>{
-  const idx=[...selected].sort((a,b)=>a-b);
-  if(!idx.length)return $("big2Msg").textContent="請先選牌";
-  if(idx.length===1){return submitPlay(idx,"single")}
-  if(!selectedType)return $("big2Msg").textContent="多張牌請先點選牌型";
-  socket.emit("big2Combos",{type:selectedType,selectedIndices:idx},res=>{
-    if(!res?.ok)return $("big2Msg").textContent=res?.message||"無可用組合";
-    if(res.combos.length===1)return submitPlay(res.combos[0].indices,selectedType);
-    pendingCombos=res.combos;showComboPreview(res.combos,selectedType);
+  if(!selectedType){
+    $("big2Msg").textContent="請先選擇牌型；單張請直接雙擊手牌";
+    return;
+  }
+
+  // V5.4：直接掃描整副手牌，不需要先點手牌。
+  socket.emit("big2Combos",{type:selectedType},res=>{
+    if(!res?.ok){
+      $("big2Msg").textContent=res?.message||"無該牌型組合";
+      return;
+    }
+
+    if(!res.combos?.length){
+      $("big2Msg").textContent="無該牌型組合";
+      return;
+    }
+
+    $("big2Msg").textContent="";
+
+    // 即使只有一組，也先給玩家預覽確認。
+    pendingCombos=res.combos;
+    showComboPreview(res.combos,selectedType);
   });
 };
 function submitPlay(indices,type){
   socket.emit("big2Play",{indices,type},res=>{
-    if(!res?.ok)return $("big2Msg").textContent=res?.message||"出牌失敗";
-    selected.clear();selectedType=null;document.querySelectorAll(".typeBtn").forEach(b=>b.classList.remove("active"));$("big2Msg").textContent="";
+    if(!res?.ok){
+      $("big2Msg").textContent=res?.message||"出牌失敗";
+      return;
+    }
+    selected.clear();
+    selectedType=null;
+    document.querySelectorAll(".typeBtn").forEach(b=>b.classList.remove("active"));
+    $("big2Msg").textContent="";
   });
 }
 function showComboPreview(combos,type){
-  $("comboOptions").innerHTML=combos.map((c,i)=>`<div class="comboOption" data-i="${i}"><strong>${typeLabel(type)} ${i+1}</strong><div class="comboPreview">${c.cards.map(x=>`<div class="miniCard ${red(x)?"red":""}"><span class="miniSuit">${x.suit}</span><span class="miniRank">${x.rank}</span></div>`).join("")}</div></div>`).join("");
-  document.querySelectorAll(".comboOption").forEach(el=>el.onclick=()=>{const c=pendingCombos[+el.dataset.i];$("comboOverlay").classList.add("hidden");submitPlay(c.indices,type)});
+  $("comboOptions").innerHTML=combos.map((c,i)=>`
+    <div class="comboOption" data-i="${i}">
+      <strong>${typeLabel(type)} 組合 ${i+1}</strong>
+      <div class="comboPreview">
+        ${c.cards.map(x=>`<div class="miniCard ${red(x)?"red":""}"><span class="miniSuit">${x.suit}</span><span class="miniRank">${x.rank}</span></div>`).join("")}
+      </div>
+    </div>`).join("");
+
+  document.querySelectorAll(".comboOption").forEach(el=>el.onclick=()=>{
+    const c=pendingCombos[+el.dataset.i];
+    $("comboOverlay").classList.add("hidden");
+    submitPlay(c.indices,type);
+  });
+
   $("comboOverlay").classList.remove("hidden");
 }
 $("comboCancel").onclick=()=>$("comboOverlay").classList.add("hidden");

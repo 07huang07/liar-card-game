@@ -442,3 +442,30 @@ body{background:#1b1009;color:#fff}
     max-width: 82% !important;
   }
 }
+
+
+/* ===== V5.4：單張雙擊出牌 + 自動掃描牌型組合 ===== */
+
+.big2HandCard {
+  cursor: pointer;
+}
+.big2HandCard:hover {
+  filter: brightness(1.05);
+  transform: translateY(-3px);
+}
+.big2HandCard.selected:hover {
+  transform: translateY(-12px);
+}
+
+/* 組合預覽更清楚 */
+.comboOption {
+  transition: transform .12s ease, border-color .12s ease, background .12s ease;
+}
+.comboOption:hover {
+  transform: translateY(-2px);
+  border-color: #d2a83c;
+  background: #2a2a2a;
+}
+.comboOption strong {
+  color: #ffd45b;
+}

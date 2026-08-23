@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "private": true,
-  "description": "Card Game Hub V5.3：大老二上一手資訊下移，該手撲克牌完整並排顯示",
+  "description": "Card Game Hub V5.4：大老二單張雙擊直接出牌，多張牌型自動掃描手牌並預覽全部組合",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
