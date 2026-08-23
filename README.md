@@ -260,3 +260,32 @@ http://localhost:3000
 - 不再限制上家、下家或目前回合玩家。
 - 前端按鈕與後端權限判定使用同一個 canChallenge 規則。
 - 5 分鐘倒數邏輯維持 V5.11，不受此次修改影響。
+
+## V5.13 吹牛抓吹牛權限完整修正
+- 找到 V5.12 真正殘留 bug：challenge handler 內仍有 `currentPlayer(room)?.id !== socket.id`。
+- 已重建整個 challenge socket handler，完全移除 turnIndex / currentPlayer / challengePlayerId 權限限制。
+- 前端也移除 V4.4 遺留的 `state.challengePlayerId === socket.id` 判斷。
+- 現在只要桌面有上一手，除了剛剛出牌本人以外，房內其餘所有玩家都能看到並按「抓吹牛」。
+- 抓吹牛仍由伺服器統一判定與同步。
+
+## V5.14 吹牛倒數完整修正
+- 找到真正原因：舊版 `restartLiarCountdownTicker()` 的 `setInterval` callback 是空的。
+- 已改成每 250ms 真正呼叫 `renderLiarCountdown()`。
+- 房主按「開始遊戲」時，伺服器建立 5 分鐘 `liarDeadline`。
+- 所有玩家收到相同 deadline 後，顯示會正常從 05:00 → 04:59 → 04:58 持續倒數。
+- 尚未開始遊戲時只顯示 05:00，不會提前計時。
+- 真正逾時勝負仍由伺服器判定。
+- liar.html 改載入 `/liar.js?v=5.14`，避免瀏覽器快取舊版 JavaScript。
+
+## V5.15 大老二更新
+- 積分跨場累積，不會因「再來一場」清零。
+- 結算畫面同時顯示「本局加減分」與「累積總積分」。
+- 排行榜持續依累積積分排序。
+- 洗牌改用 Node.js `crypto.randomInt()` 的 Fisher–Yates。
+- 鐵支與同花順改成炸彈牌型，可直接壓一般牌型，不必延續上一手牌型。
+- 炸彈規則：同花順 > 鐵支；同牌型炸彈再比較牌力。
+- 每位玩家輪到後有 10 秒操作時間。
+- 10 秒內沒有出牌，由伺服器自動 Pass／跳過，並換下一位。
+- 畫面新增 10 秒倒數提示，最後 3 秒變紅。
+- 順子與同花順允許連到 2，例如 10-J-Q-K-A、J-Q-K-A-2。
+- 自動預覽若沒有同牌型可壓，會繼續檢查鐵支與同花順；真的無牌可出才亮起 Pass。

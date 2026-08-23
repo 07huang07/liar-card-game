@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const crypto = require("crypto");
 
 const app = express();
 const server = http.createServer(app);
@@ -23,10 +24,13 @@ function makeDeck() {
 
 function shuffle(arr) {
   const a = [...arr];
+
+  // V5.15：使用 Node.js crypto.randomInt 做 Fisher-Yates 洗牌。
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = crypto.randomInt(0, i + 1);
     [a[i], a[j]] = [a[j], a[i]];
   }
+
   return a;
 }
 
@@ -45,7 +49,10 @@ function newRoom(code, gameType = "liar") {
     log: [],
     chat: [],
     liarDeadline: null,
-    liarTimer: null
+    liarTimer: null,
+    big2TurnDeadline: null,
+    big2TurnTimer: null,
+    big2TurnToken: 0
   };
 }
 
@@ -222,8 +229,16 @@ const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
 function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
 function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
 function big2Deal(room){
+  clearBig2TurnTimer(room);
+
   const deck = makeDeck();
-  room.players.forEach(p => p.hand = []);
+
+  // 積分與勝場跨場保留，只清空手牌。
+  room.players.forEach(p => {
+    if (!Number.isFinite(p.points)) p.points = 0;
+    if (!Number.isFinite(p.wins)) p.wins = 0;
+    p.hand = [];
+  });
 
   // 從房主（players[0]）開始，一張一張輪流發，
   // 直到 52 張全部發完，不保留任何底牌。
@@ -251,6 +266,9 @@ function big2Deal(room){
     p => p.hand.some(c => c.rank === "3" && c.suit === "♣")
   );
   room.turnIndex = starter >= 0 ? starter : 0;
+
+  // 第一位玩家從發牌結束後開始計時 10 秒。
+  scheduleBig2TurnTimer(room);
 }
 function big2Groups(cards){
   const m=new Map();
@@ -264,6 +282,10 @@ function comb(arr,k){
 }
 function big2FindCombos(hand,type){
   const groups=big2Groups(hand), out=[];
+
+  if(type==="single"){
+    for(let i=0;i<hand.length;i++) out.push([i]);
+  }
   if(type==="pair"){
     for(const g of groups.values()) for(const pair of comb(g,2)) out.push(pair.map(x=>x.i));
   }
@@ -284,8 +306,7 @@ function big2FindCombos(hand,type){
     for(const five of comb(indexed,5)){
       const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
       const unique=new Set(vals).size===5;
-      const noTwo=!five.some(x=>x.c.rank==="2");
-      if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)) {
+      if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)) {
         out.push(five.map(x=>x.i));
       }
     }
@@ -296,8 +317,7 @@ function big2FindCombos(hand,type){
       for(const five of comb(suited,5)){
         const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
         const unique=new Set(vals).size===5;
-        const noTwo=!five.some(x=>x.c.rank==="2");
-        if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
+        if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
       }
     }
   }
@@ -310,8 +330,7 @@ function big2Classify(cards,type){
   if(type==="straight"&&cards.length===5){
     const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
     const unique=new Set(vals).size===5;
-    const noTwo=!cards.some(c=>c.rank==="2");
-    if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)){
+    if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)){
       const highestRank=vals.at(-1);
       const highCards=cards.filter(c=>BIG2_RANK[c.rank]===highestRank);
       const highSuit=Math.max(...highCards.map(c=>BIG2_SUIT[c.suit]));
@@ -332,11 +351,86 @@ function big2Classify(cards,type){
   if(type==="straightflush"&&cards.length===5){
     const same=cards.every(c=>c.suit===cards[0].suit);
     const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
-    if(same&&vals.every((v,i)=>i===0||v===vals[i-1]+1))return {ok:true,type,score:vals.at(-1)*4+BIG2_SUIT[cards[0].suit]};
+    const unique=new Set(vals).size===5;
+    if(same&&unique&&vals.every((v,i)=>i===0||v===vals[i-1]+1))return {ok:true,type,score:vals.at(-1)*4+BIG2_SUIT[cards[0].suit]};
   }
   return {ok:false};
 }
 const BIG2_TYPE_POWER={single:0,pair:1,straight:2,fullhouse:3,fourkind:4,straightflush:5};
+
+
+function clearBig2TurnTimer(room){
+  if(room?.big2TurnTimer){
+    clearTimeout(room.big2TurnTimer);
+    room.big2TurnTimer = null;
+  }
+  if(room) room.big2TurnDeadline = null;
+}
+
+function big2ApplyPass(room, {automatic=false} = {}){
+  if(!room || room.gameType !== "big2" || !room.started || !room.players.length){
+    return;
+  }
+
+  const passer = currentPlayer(room);
+
+  if(room.lastPlay){
+    room.passCount = (room.passCount || 0) + 1;
+    nextTurn(room);
+
+    // 其他人全部 pass 後，最後出牌者重新取得新一輪先手。
+    if(room.passCount >= room.players.length - 1){
+      const lastId = room.lastPlay.playerId;
+      room.lastPlay = null;
+      room.tablePlays = [];
+      room.passCount = 0;
+
+      const idx = room.players.findIndex(p => p.id === lastId);
+      room.turnIndex = idx >= 0 ? idx : room.turnIndex;
+    }
+  }else{
+    // 新一輪沒有上一手時，逾時仍直接跳過該玩家。
+    nextTurn(room);
+  }
+
+  if(automatic && passer){
+    room.log.push(`⏱ ${passer.name} 10 秒未出牌，自動 Pass`);
+  }
+}
+
+function scheduleBig2TurnTimer(room){
+  clearBig2TurnTimer(room);
+
+  if(!room || room.gameType !== "big2" || !room.started || !room.players.length){
+    return;
+  }
+
+  const token = (room.big2TurnToken || 0) + 1;
+  room.big2TurnToken = token;
+
+  const playerId = currentPlayer(room)?.id;
+  if(!playerId) return;
+
+  room.big2TurnDeadline = Date.now() + 10 * 1000;
+
+  room.big2TurnTimer = setTimeout(() => {
+    const liveRoom = rooms.get(room.code);
+
+    if(
+      !liveRoom ||
+      !liveRoom.started ||
+      liveRoom.gameType !== "big2" ||
+      liveRoom.big2TurnToken !== token ||
+      currentPlayer(liveRoom)?.id !== playerId
+    ){
+      return;
+    }
+
+    big2ApplyPass(liveRoom, {automatic:true});
+    scheduleBig2TurnTimer(liveRoom);
+    emitRoom(liveRoom);
+  }, 10 * 1000);
+}
 
 function big2PenaltyForHand(hand){
   let penalty = 0;
@@ -370,7 +464,7 @@ function big2RecordScore(room, winnerId){
   const details = [];
 
   for(const p of room.players){
-    p.points = p.points || 0;
+    if(!Number.isFinite(p.points)) p.points = 0;
 
     if(p.id === winnerId) continue;
 
@@ -385,7 +479,8 @@ function big2RecordScore(room, winnerId){
       remainingCards: p.hand.length,
       twos: result.twos,
       aces: result.aces,
-      others: result.others
+      others: result.others,
+      totalPointsAfter: p.points
     });
   }
 
@@ -399,7 +494,8 @@ function big2RecordScore(room, winnerId){
     remainingCards: 0,
     twos: 0,
     aces: 0,
-    others: 0
+    others: 0,
+    totalPointsAfter: winner.points
   });
 
   room.scoreSummary = {
@@ -414,9 +510,30 @@ function big2RecordScore(room, winnerId){
 }
 
 function big2CanBeat(play,last){
-  if(!last)return true;
-  if(play.type!==last.type)return false;
-  return play.score>last.score;
+  if(!last) return true;
+
+  const bombPower = {
+    fourkind: 1,
+    straightflush: 2
+  };
+
+  const playBomb = bombPower[play.type] || 0;
+  const lastBomb = bombPower[last.type] || 0;
+
+  // 鐵支、同花順可以直接壓任何一般牌型。
+  if(playBomb && !lastBomb) return true;
+
+  // 一般牌無法反壓炸彈。
+  if(!playBomb && lastBomb) return false;
+
+  // 炸彈對炸彈：同花順 > 鐵支。
+  if(playBomb && lastBomb && play.type !== last.type){
+    return playBomb > lastBomb;
+  }
+
+  // 相同牌型比大小。
+  if(play.type !== last.type) return false;
+  return play.score > last.score;
 }
 
 io.on("connection", socket => {
@@ -564,11 +681,15 @@ io.on("connection", socket => {
       // 只要任何一位玩家出完牌，本局立刻結束並結算積分。
       room.winnerId = player.id;
       room.started = false;
+      clearBig2TurnTimer(room);
       big2RecordScore(room, player.id);
     }else{
       nextTurn(room);
+      scheduleBig2TurnTimer(room);
     }
-    emitRoom(room); cb?.({ok:true});
+
+    emitRoom(room);
+    cb?.({ok:true});
   });
 
   socket.on("big2Rematch", (_, cb) => {
@@ -593,17 +714,23 @@ io.on("connection", socket => {
 
   socket.on("big2Pass", (_, cb) => {
     const room=rooms.get(socket.data.roomCode);
-    if(!room||room.gameType!=="big2"||!room.started)return cb?.({ok:false,message:"遊戲尚未開始"});
-    if(currentPlayer(room)?.id!==socket.id)return cb?.({ok:false,message:"還沒輪到你"});
-    if(!room.lastPlay)return cb?.({ok:false,message:"目前是新一輪，不能 Pass"});
-    room.passCount=(room.passCount||0)+1; nextTurn(room);
-    // 其他所有玩家都 pass 後，清空上一手，最後出牌者重新先手
-    if(room.passCount>=room.players.length-1){
-      const lastId=room.lastPlay.playerId;
-      room.lastPlay=null; room.tablePlays=[]; room.passCount=0;
-      const idx=room.players.findIndex(p=>p.id===lastId); room.turnIndex=idx>=0?idx:room.turnIndex;
+
+    if(!room||room.gameType!=="big2"||!room.started){
+      return cb?.({ok:false,message:"遊戲尚未開始"});
     }
-    emitRoom(room); cb?.({ok:true});
+
+    if(currentPlayer(room)?.id!==socket.id){
+      return cb?.({ok:false,message:"還沒輪到你"});
+    }
+
+    if(!room.lastPlay){
+      return cb?.({ok:false,message:"目前是新一輪，不能手動 Pass"});
+    }
+
+    big2ApplyPass(room);
+    scheduleBig2TurnTimer(room);
+    emitRoom(room);
+    cb?.({ok:true});
   });
 
   socket.on("startGame", (_, cb) => {
@@ -668,21 +795,20 @@ io.on("connection", socket => {
 
   socket.on("challenge", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
-    
-    
-    // V5.12：任何房內玩家都可以抓吹牛。
-    // 唯一條件：吹牛遊戲進行中，而且桌上確實存在上一手。
+
+    // V5.13：抓吹牛不看回合、不看上家、不看 turnIndex。
+    // 只要牌局進行中且存在上一手，除了剛出牌本人，其餘房內玩家都能抓。
     if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
-      return cb?.({ ok: false, message: "目前不能抓吹牛" });
-    }
-// V5.10：任何房內玩家都可以抓吹牛，不限制是否輪到他。
-if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
       return cb?.({ ok: false, message: "目前沒有可以抓的上一手" });
     }
 
     const challenger = getPlayer(room, socket.id);
-    if (!challenger || currentPlayer(room)?.id !== socket.id) {
-      return cb?.({ ok: false, message: "現在不是你的抓吹牛時機" });
+    if (!challenger) {
+      return cb?.({ ok: false, message: "你目前不在這個房間" });
+    }
+
+    if (room.lastPlay.playerId === socket.id) {
+      return cb?.({ ok: false, message: "不能抓自己剛出的牌" });
     }
 
     const revealedCards = room.lastPlay.cards.map(card => ({ suit: card.suit, rank: card.rank }));
@@ -789,6 +915,11 @@ if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
       room.winnerId = null;
     }
     room.log.push(`${leaving?.name || "玩家"} 離開了房間`);
+
+    if(room.gameType === "big2" && room.started){
+      scheduleBig2TurnTimer(room);
+    }
+
     emitRoom(room);
     cb?.({ ok: true });
   });
@@ -835,8 +966,15 @@ if (!room || room.gameType !== "liar" || !room.started || !room.lastPlay) {
       if (room.turnIndex >= room.players.length) room.turnIndex = 0;
     }
 
-    if (room.players.length === 0) rooms.delete(code);
-    else emitRoom(room);
+    if (room.players.length === 0) {
+      clearBig2TurnTimer(room);
+      rooms.delete(code);
+    } else {
+      if(room.gameType === "big2" && room.started){
+        scheduleBig2TurnTimer(room);
+      }
+      emitRoom(room);
+    }
   });
 });
 

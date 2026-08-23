@@ -825,3 +825,32 @@ body{background:#1b1009;color:#fff}
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== V5.15：大老二10秒回合倒數 ===== */
+.big2TurnTimer{
+  display:inline-flex;
+  min-width:38px;
+  justify-content:center;
+  margin-left:7px;
+  padding:3px 7px;
+  border-radius:8px;
+  background:#252525;
+  border:1px solid #565656;
+  color:#ffd45c;
+  font-size:11px;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+}
+.big2TurnTimer::before{content:"⏱ "}
+.big2TurnTimer.urgent{
+  background:#a52c31;
+  color:#fff;
+  border-color:#ff7777;
+  box-shadow:0 0 13px rgba(255,70,70,.55);
+}
+
+/* 結算本局分數 + 累積分數文字稍微加寬 */
+.settlementScoreRow{
+  grid-template-columns:minmax(120px,1fr) minmax(160px,1.5fr) minmax(120px,auto) !important;
+}

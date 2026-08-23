@@ -11,6 +11,7 @@ let lastAutoPreviewKey = "";
 let comboOverlayOpenedByAuto = false;
 let lastRenderedHistoryCount = 0;
 let lastSettlementTs = 0;
+let big2TurnTicker = null;
 
 document.querySelectorAll("#big2Animals button").forEach(btn=>{
   btn.onclick=()=>{
@@ -228,39 +229,69 @@ function requestPlayableCombos(type, {auto=false} = {}){
 }
 
 function autoPreviewForCurrentTurn(){
-  if(!state?.started) {
+  if(!state?.started){
     setPassReminder(false);
     return;
   }
 
-  const current = state.players?.[state.turnIndex];
-  const isMyTurn = current?.id===socket.id;
-
-  if(!isMyTurn){
+  const current=state.players?.[state.turnIndex];
+  if(current?.id!==socket.id){
     setPassReminder(false);
     return;
   }
 
-  // 新一輪沒有上一手，不自動跳預覽。
   if(!state.lastPlay){
     setPassReminder(false);
     return;
   }
 
-  const type = state.lastPlay.type;
-  if(!type || type==="single"){
-    // 單張仍採雙擊手牌操作。若完全沒有合法單張，出牌時後端會阻擋。
-    setSelectedType(null);
-    setPassReminder(false);
-    return;
-  }
-
-  const key = `${state.lastPlay.ts||""}|${state.lastPlay.playerId}|${state.turnIndex}|${socket.id}`;
+  const key=`${state.lastPlay.ts||""}|${state.lastPlay.playerId}|${state.turnIndex}|${socket.id}`;
   if(key===lastAutoPreviewKey) return;
   lastAutoPreviewKey=key;
 
-  setSelectedType(type);
-  requestPlayableCombos(type,{auto:true});
+  // 先檢查上一手同牌型，再檢查可以隨時出的鐵支、同花順。
+  const candidates=[];
+  if(state.lastPlay.type) candidates.push(state.lastPlay.type);
+  if(!candidates.includes("fourkind")) candidates.push("fourkind");
+  if(!candidates.includes("straightflush")) candidates.push("straightflush");
+
+  let idx=0;
+
+  function tryNext(){
+    if(idx>=candidates.length){
+      setSelectedType(null);
+      setPassReminder(true);
+      $("big2Msg").textContent="沒有可以壓過上一手的牌，請 Pass";
+      return;
+    }
+
+    const type=candidates[idx++];
+
+    socket.emit("big2Combos",{type},res=>{
+      const combos=res?.ok ? (res.combos||[]) : [];
+
+      if(!combos.length){
+        tryNext();
+        return;
+      }
+
+      setPassReminder(false);
+      $("big2Msg").textContent="";
+
+      // 單張只提醒有牌可出，仍由玩家雙擊手牌。
+      if(type==="single"){
+        setSelectedType(null);
+        return;
+      }
+
+      setSelectedType(type);
+      pendingCombos=combos;
+      comboOverlayOpenedByAuto=true;
+      showComboPreview(combos,type);
+    });
+  }
+
+  tryNext();
 }
 
 
@@ -302,7 +333,7 @@ function renderSettlement(){
         ${p.id===state.winnerId?'<span class="winnerTag">WIN</span>':""}
       </div>
       <div class="settlementExplain">${esc(explain)}</div>
-      <strong class="${delta>=0?"positive":"negative"}">${deltaText} 分</strong>
+      <strong class="${delta>=0?"positive":"negative"}">本局 ${deltaText}｜累積 ${p.points||0}</strong>
     </div>`;
   }).join("");
 
@@ -329,6 +360,32 @@ function closeSettlement(){
   $("big2SettlementOverlay").classList.add("hidden");
 }
 
+
+function renderBig2TurnCountdown(){
+  const el=$("big2TurnTimer");
+  if(!el) return;
+
+  if(!state?.started || !state?.big2TurnDeadline){
+    el.textContent="--";
+    el.classList.remove("urgent");
+    return;
+  }
+
+  const remaining=Math.max(0, Number(state.big2TurnDeadline)-Date.now());
+  const sec=Math.ceil(remaining/1000);
+
+  el.textContent=`${sec}s`;
+  el.classList.toggle("urgent",sec<=3 && sec>0);
+
+  if(sec<=0) el.textContent="0s";
+}
+
+function startBig2TurnTicker(){
+  if(big2TurnTicker) clearInterval(big2TurnTicker);
+  renderBig2TurnCountdown();
+  big2TurnTicker=setInterval(renderBig2TurnCountdown,250);
+}
+
 function render(){
   if(!state)return;
   $("big2Code").textContent=state.code;
@@ -346,6 +403,7 @@ function render(){
   renderSeats();renderStack();renderHistory();renderLeaderboard();renderChat(state.chat||[]);
   autoPreviewForCurrentTurn();
   renderSettlement();
+  renderBig2TurnCountdown();
 }
 
 socket.on("yourHand",cards=>{if(state?.gameType==="big2"||location.pathname.includes("big2")){hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand()}});
@@ -408,3 +466,6 @@ $("comboOverlay").addEventListener("click",e=>{
 
 function typeLabel(t){return ({single:"單張",pair:"對子",straight:"順子",fullhouse:"葫蘆",fourkind:"鐵支",straightflush:"同花順"}[t]||t)}
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}
+
+// V5.15：大老二回合 10 秒倒數顯示
+startBig2TurnTicker();

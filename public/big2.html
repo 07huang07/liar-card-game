@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>大老二｜Card Game Hub V5.7</title>
+  <title>大老二｜Card Game Hub V5.15</title>
   <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/big2.css">
+  <link rel="stylesheet" href="/big2.css?v=5.15">
 </head>
 <body>
 <section id="big2Landing" class="big2Landing">
@@ -31,7 +31,7 @@
 
 <section id="big2Game" class="big2Game hidden">
   <header class="big2Top">
-    <div><strong>房間 <span id="big2Code">000</span></strong>　<span id="big2Status">等待開始</span></div>
+    <div><strong>房間 <span id="big2Code">000</span></strong>　<span id="big2Status">等待開始</span> <span id="big2TurnTimer" class="big2TurnTimer">--</span></div>
     <div><button id="big2Exit" class="exitGameBtn">退出遊戲</button><button id="big2Copy">複製房號</button></div>
   </header>
 
@@ -132,6 +132,6 @@
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/big2.js"></script>
+<script src="/big2.js?v=5.15"></script>
 </body>
 </html>

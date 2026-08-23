@@ -68,19 +68,37 @@ $("playBtn").onclick=()=>{
 };
 
 $("challengeBtn").onclick=()=>{
-  $("challengeBtn").disabled = !state.canChallenge;
+  if (!state?.canChallenge || !state?.lastPlay || state.lastPlay.playerId === socket.id) {
+    return setMsg("目前不能抓吹牛");
+  }
+
+  // 點下後暫時防連點，伺服器回覆或新的 roomState 會恢復正確狀態。
+  $("challengeBtn").disabled = true;
+
   socket.emit("challenge",{},res=>{
-    $("challengeBtn").disabled = !state.canChallenge;
-    if(!res?.ok)setMsg(res?.message||"抓吹牛失敗");
+    if(!res?.ok){
+      setMsg(res?.message||"抓吹牛失敗");
+      const canChallenge =
+        !!state?.canChallenge &&
+        !!state?.lastPlay &&
+        state.lastPlay.playerId !== socket.id;
+      $("challengeBtn").disabled = !canChallenge;
+      return;
+    }
+    setMsg("");
   });
 };
 
 $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 
 socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
-socket.on("roomState",next=>{state=next;
-  restartLiarCountdownTicker();
-renderState();});
+socket.on("roomState", next => {
+  state = next;
+
+  // 收到伺服器最新 deadline 後立即更新畫面。
+  renderLiarCountdown();
+  renderState();
+});
 
 socket.on("challengeResult", result=>{
   const overlay=$("resultOverlay");
@@ -195,10 +213,13 @@ function restartLiarCountdownTicker() {
     clearInterval(liarTimerInterval);
   }
 
-  // 收到 startGame 後的 roomState 時立刻刷新一次。
+  // 先立刻刷新一次
+  renderLiarCountdown();
 
+  // V5.14：真正每 0.25 秒重新計算剩餘時間
   liarTimerInterval = setInterval(() => {
-    }, 250);
+    renderLiarCountdown();
+  }, 250);
 }
 
 function renderState(){
@@ -281,14 +302,14 @@ function renderState(){
 
   $("tableCards").innerHTML=(state.tableCards||[]).map(()=>`<div class="tableCardBack"></div>`).join("");
 
-  // V4.4：由伺服器指定誰可以抓，避免前端回合判斷不同步
+  // V5.13：任何其他玩家都可以抓，不看 turnIndex / challengePlayerId。
   const canChallenge =
-    state.started &&
-    state.lastPlay &&
-    state.challengePlayerId === socket.id &&
+    !!state.canChallenge &&
+    !!state.lastPlay &&
     state.lastPlay.playerId !== socket.id;
 
-  $("challengeBtn").classList.toggle("hidden", !state.canChallenge);
+  $("challengeBtn").disabled = !canChallenge;
+  $("challengeBtn").classList.toggle("hidden", !canChallenge);
   $("challengeArea").classList.toggle("hidden", !canChallenge);
 
   $("log").innerHTML=state.log.map(x=>`<div>${escapeHtml(x)}</div>`).join("");
@@ -359,9 +380,9 @@ function escapeHtml(s){
 
 
 // V5.9：確保頁面載入後倒數持續刷新
+// V5.12：抓吹牛按鈕權限只看 state.canChallenge，所有房內玩家共用。
 
-
-// V5.11：頁面載入後只負責刷新畫面；真正 deadline 由開始遊戲事件取得。
+// V5.14：頁面載入後啟動唯一一個倒數刷新器。
+// 尚未開始遊戲時只會停在 05:00；收到 liarDeadline 後才真正往下倒數。
 restartLiarCountdownTicker();
 
-// V5.12：抓吹牛按鈕權限只看 state.canChallenge，所有房內玩家共用。

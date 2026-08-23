@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.12.0",
+  "version": "5.15.0",
   "private": true,
-  "description": "Card Game Hub V5.12：修正吹牛抓牌權限，所有房內玩家都可抓吹牛",
+  "description": "Card Game Hub V5.15：大老二累積積分、crypto洗牌、炸彈牌型、10秒自動Pass、順子可連到2",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
