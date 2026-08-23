@@ -131,13 +131,13 @@ function renderState(){
   const medals=["🥇","🥈","🥉","4️⃣"];
   $("leaderboard").innerHTML=rankedPlayers.map((p,i)=>`<div class="leaderRow ${p.id===socket.id?"me":""}"><span>${medals[i]||i+1}</span><span class="leaderName">${escapeHtml(p.animal||"🐶")} ${escapeHtml(p.name)}</span><strong>${p.wins||0}勝</strong><span>${p.losses||0}敗</span></div>`).join("");
 
-  const rankBadge=$("roundRankBadge");
-  if(state.roundRank){
-    rankBadge.classList.remove("waiting");
-    rankBadge.querySelector("strong").textContent=state.roundRank;
-  }else{
-    rankBadge.classList.add("waiting");
-    rankBadge.querySelector("strong").textContent="等待選擇";
+  const tableRankBadge = $("tableRoundRankBadge");
+  if (state.roundRank) {
+    tableRankBadge.classList.remove("waiting");
+    tableRankBadge.querySelector("strong").textContent = state.roundRank;
+  } else {
+    tableRankBadge.classList.add("waiting");
+    tableRankBadge.querySelector("strong").textContent = "等待選擇";
   }
 
   if(state.winnerId){
@@ -161,11 +161,9 @@ function renderState(){
   $("playBtn").disabled=!myTurn||!state.started;
 
   if(state.roundRank){
-    $("roundRankBadge").textContent=`本輪點數：${state.roundRank}`;
     setRankSelection(state.roundRank, true);
     $("suitHint").textContent=`本輪已鎖定點數 ${state.roundRank}，直到有人抓吹牛。`;
   }else{
-    $("roundRankBadge").textContent="尚未決定點數";
     setRankSelection(selectedRank || "A", false);
     $("suitHint").textContent="新一輪第一位玩家可以自由決定點數。";
   }

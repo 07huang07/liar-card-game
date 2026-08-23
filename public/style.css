@@ -402,13 +402,115 @@ body { overflow-x: hidden; }
   .developerCredit { font-size:10px; right:7px; bottom:5px; }
 }
 
-/* V4.7 */
-.exitGameBtn{position:fixed;right:14px;top:14px;z-index:80;background:#7d2525;color:white;border:1px solid #b85c5c;border-radius:9px;padding:7px 11px;font-weight:800}
-.leaderboardPanel{position:fixed;left:10px;top:82px;width:180px;z-index:35;padding:10px;border-radius:14px;background:rgba(16,24,19,.94);border:1px solid rgba(255,215,100,.28)}
-.leaderboardTitle{text-align:center;color:#ffd76a;font-weight:900;margin-bottom:7px}
-.leaderRow{display:grid;grid-template-columns:24px 1fr auto auto;gap:5px;align-items:center;padding:6px 3px;font-size:11px;border-bottom:1px solid rgba(255,255,255,.07)}
-.leaderRow.me{background:rgba(255,215,106,.1);border-radius:7px}.leaderName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.leaderRow strong{color:#ffd76a}
-.roundRankBadge{position:absolute;left:50%;top:7%;transform:translateX(-50%);z-index:25;min-width:115px;text-align:center;padding:7px 14px;border-radius:16px;background:rgba(25,18,8,.94);border:2px solid #ffd15c;box-shadow:0 0 24px rgba(255,196,52,.4)}
-.roundRankBadge span{display:block;font-size:11px;color:#ffe8a9}.roundRankBadge strong{display:block;font-size:38px;line-height:1.05;color:#fff2b8}.roundRankBadge.waiting{opacity:.75;border-color:#777;box-shadow:none}.roundRankBadge.waiting strong{font-size:14px;margin-top:5px;color:#ddd}
-@media(min-width:900px){#game{padding-left:200px}}
-@media(max-width:899px){.leaderboardPanel{position:static;width:auto;margin:6px 8px;padding:7px}#leaderboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 8px}.leaderRow{border:0}}
+
+
+/* ===== V4.8：整合式排行榜 / 本輪點數 / 退出按鈕 ===== */
+.exitGameBtn {
+  background: #7b2d2d;
+  color: #fff;
+  border: 1px solid rgba(255,150,150,.35);
+}
+.exitGameBtn:hover {
+  background: #923939;
+}
+
+.leaderboardBox {
+  flex: 0 0 auto;
+}
+.leaderboardList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.leaderRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0,1fr) auto auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 5px 5px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.035);
+  font-size: 11px;
+}
+.leaderRow.me {
+  background: rgba(255,211,92,.12);
+  outline: 1px solid rgba(255,211,92,.18);
+}
+.leaderName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leaderRow strong {
+  color: #ffd45f;
+}
+
+.compactTableCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.tableRoundRankBadge {
+  position: absolute;
+  left: 50%;
+  top: 7%;
+  transform: translateX(-50%);
+  z-index: 12;
+  min-width: 126px;
+  padding: 7px 16px 9px;
+  text-align: center;
+  border-radius: 16px;
+  background: rgba(24,16,7,.9);
+  border: 2px solid #ffd15c;
+  box-shadow: 0 0 24px rgba(255,196,52,.42);
+  pointer-events: none;
+}
+.tableRoundRankBadge span {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffe8a9;
+  letter-spacing: 1px;
+}
+.tableRoundRankBadge strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 40px;
+  line-height: 1;
+  color: #fff4bd;
+  text-shadow: 0 0 12px rgba(255,207,76,.7);
+}
+.tableRoundRankBadge.waiting {
+  border-color: rgba(255,255,255,.25);
+  box-shadow: none;
+  opacity: .82;
+}
+.tableRoundRankBadge.waiting strong {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #ddd;
+  text-shadow: none;
+}
+
+@media (max-height: 760px) {
+  .leaderRow {
+    min-height: 24px;
+    padding: 3px 4px;
+    font-size: 10px;
+  }
+  .tableRoundRankBadge strong {
+    font-size: 32px;
+  }
+}
+@media (max-width: 760px) {
+  .leaderboardList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .tableRoundRankBadge {
+    top: 4%;
+    min-width: 105px;
+  }
+}

@@ -44,15 +44,20 @@
           <span id="status" class="muted"></span>
         </div>
         <div class="topActions">
+          <button id="exitGameBtn" class="small exitGameBtn">退出遊戲</button>
           <button id="copyBtn" class="small secondary">複製房號</button>
         </div>
       </header>
 
       <div class="gameGrid">
         <aside class="sidePanel">
+          <div class="miniBox leaderboardBox">
+            <div class="miniTitle">🏆 排行榜</div>
+            <div id="leaderboard" class="leaderboardList"></div>
+          </div>
+
           <div class="miniBox">
             <div class="miniTitle">遊戲資訊</div>
-            <div id="roundRankBadge" class="roundSuit">尚未決定點數</div>
             <div id="lastPlay" class="lastPlay">目前還沒有人出牌</div>
             <div class="pileText">桌面 <span id="pileCount">0</span> 張</div>
           </div>
@@ -72,6 +77,10 @@
               <div id="seat3" class="seat seat-bottom hidden"></div>
 
               <div class="tableCenter compactTableCenter">
+                <div id="tableRoundRankBadge" class="tableRoundRankBadge waiting">
+                  <span>本輪點數</span>
+                  <strong>等待選擇</strong>
+                </div>
                 <div id="tableCards" class="tableCards"></div>
               </div>
             </div>
