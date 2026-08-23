@@ -137,5 +137,5 @@ function showComboPreview(combos,type){
 }
 $("comboCancel").onclick=()=>$("comboOverlay").classList.add("hidden");
 
-function typeLabel(t){return ({single:"單張",pair:"對子",fullhouse:"葫蘆",fourkind:"鐵支",straightflush:"同花順"}[t]||t)}
+function typeLabel(t){return ({single:"單張",pair:"對子",straight:"順子",fullhouse:"葫蘆",fourkind:"鐵支",straightflush:"同花順"}[t]||t)}
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")}

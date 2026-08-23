@@ -211,12 +211,25 @@ function big2FindCombos(hand,type){
       for(let i=0;i<hand.length;i++) if(!fi.includes(i)) out.push([...fi,i]);
     }
   }
+  if(type==="straight"){
+    const indexed=hand.map((c,i)=>({c,i}));
+    for(const five of comb(indexed,5)){
+      const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
+      const unique=new Set(vals).size===5;
+      const noTwo=!five.some(x=>x.c.rank==="2");
+      if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)) {
+        out.push(five.map(x=>x.i));
+      }
+    }
+  }
   if(type==="straightflush"){
     for(const suit of Object.keys(BIG2_SUIT)){
       const suited=hand.map((c,i)=>({c,i})).filter(x=>x.c.suit===suit);
       for(const five of comb(suited,5)){
         const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
-        if(vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
+        const unique=new Set(vals).size===5;
+        const noTwo=!five.some(x=>x.c.rank==="2");
+        if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
       }
     }
   }
@@ -226,6 +239,17 @@ function big2Classify(cards,type){
   cards=big2Sort(cards);
   if(type==="single"&&cards.length===1)return {ok:true,type,score:big2CardValue(cards[0])};
   if(type==="pair"&&cards.length===2&&cards[0].rank===cards[1].rank)return {ok:true,type,score:Math.max(...cards.map(big2CardValue))};
+  if(type==="straight"&&cards.length===5){
+    const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
+    const unique=new Set(vals).size===5;
+    const noTwo=!cards.some(c=>c.rank==="2");
+    if(unique && noTwo && vals.every((v,i)=>i===0||v===vals[i-1]+1)){
+      const highestRank=vals.at(-1);
+      const highCards=cards.filter(c=>BIG2_RANK[c.rank]===highestRank);
+      const highSuit=Math.max(...highCards.map(c=>BIG2_SUIT[c.suit]));
+      return {ok:true,type,score:highestRank*4+highSuit};
+    }
+  }
   if(type==="fullhouse"&&cards.length===5){
     const counts=[...big2Groups(cards).values()].map(g=>g.length).sort().join(",");
     if(counts==="2,3"){
@@ -244,7 +268,7 @@ function big2Classify(cards,type){
   }
   return {ok:false};
 }
-const BIG2_TYPE_POWER={single:0,pair:1,fullhouse:2,fourkind:3,straightflush:4};
+const BIG2_TYPE_POWER={single:0,pair:1,straight:2,fullhouse:3,fourkind:4,straightflush:5};
 function big2CanBeat(play,last){
   if(!last)return true;
   if(play.type!==last.type)return false;

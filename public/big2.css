@@ -22,3 +22,300 @@ body{background:#1b1009;color:#fff}
 .big2HandDock{position:relative;margin:10px 12px 12px;min-height:175px;padding:12px 16px;background:#111;border:1px solid #343434;border-radius:16px}.handHeader{font-weight:900}.big2Hand{display:flex;gap:5px;align-items:flex-end;overflow-x:auto;padding:9px 0}.big2HandCard{width:65px;height:96px;flex:0 0 65px;border-radius:9px;background:#fff;border:2px solid #ddd;color:#111;font-weight:900;font-size:19px;transition:.12s}.big2HandCard.red{color:#c22}.big2HandCard.selected{transform:translateY(-12px);outline:3px solid #ffd044}.brand{position:absolute;right:16px;bottom:10px;color:#777}
 .comboOverlay{position:fixed;inset:0;z-index:999;background:#000b;display:grid;place-items:center}.comboCard{width:min(760px,90vw);max-height:80vh;overflow:auto;background:#151515;border:1px solid #555;border-radius:18px;padding:18px}.comboOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.comboOption{padding:12px;border-radius:12px;background:#222;border:1px solid #555;cursor:pointer}.comboPreview{display:flex;gap:4px;margin-top:8px}.miniCard{width:42px;height:58px;border-radius:6px;background:#fff;color:#111;display:grid;place-items:center;font-weight:900}.miniCard.red{color:#c22}
 @media(max-width:1000px){.big2Grid{grid-template-columns:1fr;height:auto}.big2Center{height:560px}.big2Left,.big2Right{display:grid;grid-template-columns:1fr 1fr}.historyBox,.chatBox{height:220px}.big2HandDock{margin-top:8px}}
+
+
+/* ===== V5.1：大老二桌面版單頁化 + 順子 ===== */
+
+/* 讓整個大老二桌面版盡量在 100vh 內完成操作 */
+.big2Game {
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 54px minmax(0, 1fr) 154px;
+  gap: 7px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+}
+
+.big2Top {
+  height: 52px;
+  min-height: 52px;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 0 14px;
+}
+
+.big2Grid {
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 200px minmax(460px, 1fr) 228px;
+  gap: 9px;
+  overflow: hidden;
+}
+
+/* 左右欄縮小 */
+.big2Left,
+.big2Right {
+  min-height: 0;
+  gap: 7px;
+}
+.big2Box {
+  padding: 9px;
+  border-radius: 13px;
+}
+.big2Box h3 {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.historyBox {
+  min-height: 0;
+}
+.big2History {
+  height: 150px;
+  font-size: 10px;
+}
+.chatBox {
+  height: 148px;
+}
+.big2Chat {
+  height: 72px;
+  padding: 5px;
+}
+.big2ChatMsg {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.big2ChatRow {
+  grid-template-columns: minmax(0,1fr) 48px;
+}
+
+/* 中央牌桌縮小，避免整頁需要捲動 */
+.big2Center {
+  min-height: 0;
+  overflow: hidden;
+}
+.big2Table {
+  inset: 48px 34px 34px;
+  border-width: 13px;
+}
+.big2Stack {
+  width: 280px;
+  height: 150px;
+  top: 53%;
+}
+.lastPlayLabel {
+  top: 13px;
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+/* 玩家資訊卡縮小一階 */
+.b2Seat {
+  width: 98px;
+  padding: 5px;
+  border-radius: 13px;
+}
+.b2Seat.top {
+  top: 3px;
+}
+.b2Seat.bottom {
+  bottom: 1px;
+}
+.b2Seat.left {
+  left: 22px;
+}
+.b2Seat.right {
+  right: 22px;
+}
+.b2Seat .avatar {
+  font-size: 25px;
+}
+.b2Seat .name {
+  font-size: 11px;
+}
+.b2Seat .count,
+.b2Seat .record {
+  font-size: 9px;
+}
+
+/* 桌面出牌縮小 */
+.stackCard {
+  width: 40px;
+  height: 57px;
+  margin-left: -14px;
+  font-size: 12px;
+}
+.stackCard:first-child {
+  margin-left: 0;
+}
+
+/* 右側操作變緊湊 */
+.typeTitle {
+  margin: 4px 0;
+  font-size: 11px;
+}
+.typeGrid {
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 5px;
+}
+.typeBtn {
+  padding: 7px 4px;
+  font-size: 11px;
+}
+.typeGrid .typeBtn:last-child {
+  grid-column: 1 / -1;
+}
+.big2PlayBtn,
+.big2PassBtn {
+  padding: 10px;
+  margin-top: 6px;
+  font-size: 14px;
+}
+.startBtnStandalone {
+  min-height: 43px;
+  font-size: 15px;
+}
+.hint {
+  margin: 5px 0;
+  font-size: 9px;
+}
+
+/* 手牌區固定在底部，不需要捲到下面 */
+.big2HandDock {
+  min-height: 0;
+  height: 154px;
+  margin: 0;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.handHeader {
+  font-size: 13px;
+}
+.big2Hand {
+  height: 108px;
+  box-sizing: border-box;
+  padding: 6px 0 0;
+  gap: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  align-items: flex-end;
+}
+.big2HandCard {
+  width: 50px;
+  height: 78px;
+  flex: 0 0 50px;
+  font-size: 15px;
+}
+.big2HandCard.selected {
+  transform: translateY(-8px);
+}
+.brand {
+  bottom: 7px;
+  font-size: 10px;
+}
+
+/* 1366~1450 類型的筆電畫面再縮一點 */
+@media (max-width: 1450px) and (min-width: 1001px) {
+  .big2Game {
+    grid-template-rows: 50px minmax(0,1fr) 142px;
+    padding: 6px 8px;
+  }
+  .big2Top {
+    height: 48px;
+    min-height: 48px;
+  }
+  .big2Grid {
+    grid-template-columns: 176px minmax(420px,1fr) 210px;
+    gap: 7px;
+  }
+  .big2Table {
+    inset: 44px 24px 30px;
+  }
+  .b2Seat.left { left: 14px; }
+  .b2Seat.right { right: 14px; }
+  .big2HandDock {
+    height: 142px;
+  }
+  .big2Hand {
+    height: 96px;
+  }
+  .big2HandCard {
+    width: 46px;
+    height: 70px;
+    flex-basis: 46px;
+  }
+}
+
+/* 較矮桌面螢幕 */
+@media (max-height: 760px) and (min-width: 1001px) {
+  .big2Game {
+    grid-template-rows: 46px minmax(0,1fr) 126px;
+    gap: 5px;
+  }
+  .big2Top {
+    height: 44px;
+    min-height: 44px;
+  }
+  .big2Grid {
+    grid-template-columns: 168px minmax(400px,1fr) 202px;
+  }
+  .big2Table {
+    inset: 38px 25px 24px;
+  }
+  .b2Seat {
+    width: 88px;
+  }
+  .big2History {
+    height: 112px;
+  }
+  .chatBox {
+    height: 118px;
+  }
+  .big2Chat {
+    height: 50px;
+  }
+  .big2HandDock {
+    height: 126px;
+  }
+  .big2Hand {
+    height: 84px;
+  }
+  .big2HandCard {
+    width: 43px;
+    height: 66px;
+    flex-basis: 43px;
+  }
+}
+
+/* 小螢幕仍允許正常直向捲動 */
+@media (max-width: 1000px) {
+  .big2Game {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+    display: block;
+    padding: 0;
+  }
+  .big2Top {
+    margin: 8px;
+  }
+  .big2Grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: auto;
+    margin: 0 8px;
+    overflow: visible;
+  }
+  .big2Center {
+    height: 520px;
+  }
+  .big2HandDock {
+    height: auto;
+    min-height: 165px;
+    margin: 8px;
+    overflow: visible;
+  }
+}

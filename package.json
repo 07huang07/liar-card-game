@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
-  "description": "Card Game Hub V5.0：同一網站支援動物吹牛與大老二多人房間",
+  "description": "Card Game Hub V5.1：大老二單頁緊湊版面與新增五張順子牌型",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
