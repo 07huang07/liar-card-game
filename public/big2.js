@@ -91,6 +91,17 @@ $("settlementRematch").onclick=()=>{
   });
 };
 
+
+function sortBig2HandForDisplay(cards){
+  const rankOrder=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+  const suitOrder={"♣":0,"♦":1,"♥":2,"♠":3};
+  return [...cards].sort((a,b)=>{
+    const rd=rankOrder.indexOf(a.rank)-rankOrder.indexOf(b.rank);
+    if(rd!==0)return rd;
+    return (suitOrder[a.suit]??99)-(suitOrder[b.suit]??99);
+  });
+}
+
 function cardText(c){return `${c.suit}${c.rank}`}
 function red(c){return c.suit==="♥"||c.suit==="♦"}
 function renderHand(){

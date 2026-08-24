@@ -430,11 +430,27 @@ const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
 
 function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
 function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
+
+function big2SortHand(hand) {
+  // 大老二顯示順序：3 最小，接著 4...K、A、2；
+  // 同點數依 ♣、♦、♥、♠ 排列，方便快速閱覽。
+  const rankOrder = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+  const suitOrder = {"♣":0,"♦":1,"♥":2,"♠":3};
+
+  hand.sort((a, b) => {
+    const rankDiff = rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
+    if (rankDiff !== 0) return rankDiff;
+    return (suitOrder[a.suit] ?? 99) - (suitOrder[b.suit] ?? 99);
+  });
+
+  return hand;
+}
+
 function big2Deal(room) {
-  // V5.42：每場都重新建立完整 52 張牌。
+  // V5.44：每場都建立全新 52 張牌並重新洗牌。
   let deck = shuffle(makeDeck());
 
-  // 洗完再隨機切牌一次。
+  // 洗牌後再隨機切牌。
   const cut = 1 + Math.floor(Math.random() * 51);
   deck = deck.slice(cut).concat(deck.slice(0, cut));
 
@@ -442,21 +458,34 @@ function big2Deal(room) {
     player.hand = [];
   });
 
+  // 清除上一場所有會影響「第一手」判定的狀態。
   room.pile = [];
   room.lastPlay = null;
   room.tablePlays = [];
+  room.history = [];
   room.passCount = 0;
   room.winnerId = null;
   room.started = true;
-  room.turnIndex = 0;
   room.matchRecorded = false;
 
-  // 從房主開始，一張一張輪流發，直到 52 張全部發完。
+  // 從房主開始輪流發牌，直到 52 張全部發完。
   let receiverIndex = 0;
   while (deck.length > 0) {
     room.players[receiverIndex].hand.push(deck.shift());
     receiverIndex = (receiverIndex + 1) % room.players.length;
   }
+
+  // 發牌完成後整理每位玩家手牌，方便閱讀與選牌。
+  room.players.forEach(player => {
+    big2SortHand(player.hand);
+  });
+
+  // 大老二第一手必須含梅花 3，因此由持有梅花 3 的玩家先出。
+  const clubThreePlayerIndex = room.players.findIndex(player =>
+    player.hand.some(card => card.rank === "3" && card.suit === "♣")
+  );
+
+  room.turnIndex = clubThreePlayerIndex >= 0 ? clubThreePlayerIndex : 0;
 
   room.log.push("🃏 新一場大老二：52 張牌已重新洗牌並全部發完");
 }
@@ -673,9 +702,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.42",
+    version: "V5.44",
     date: "2026/08/24",
-    content: "大老二洗牌機制強化：每場重新建立完整 52 張牌，使用 Fisher–Yates 洗牌並隨機切牌後，再從房主開始輪流發至全部發完。"
+    content: "修正大老二洗牌後第一手無法出牌的 Bug：改由持有梅花 3 的玩家自動先出；發牌後手牌依 3～2 與花色自動排序整齊。"
   }
 ];
 

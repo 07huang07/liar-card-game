@@ -89,11 +89,11 @@
       <div id="maintenanceEntries">
         <div class="maintenanceEntry latestOnly">
           <div class="maintenanceMeta">
-            <span class="maintenanceVersion">V5.42</span>
+            <span class="maintenanceVersion">V5.44</span>
             <time>2026/08/24</time>
           </div>
           <span class="maintenanceSummary">
-            大老二洗牌機制強化：每場重新建立完整 52 張牌，使用 Fisher–Yates 洗牌並隨機切牌後，再從房主開始輪流發至全部發完。
+            修正大老二洗牌後第一手無法出牌的 Bug：改由持有梅花 3 的玩家自動先出；發牌後手牌依 3～2 與花色自動排序整齊。
           </span>
         </div>
       </div>
@@ -111,7 +111,7 @@
         <input id="maintenancePassword" type="password" autocomplete="current-password" maxlength="32">
 
         <label for="maintenanceVersion">版本編號</label>
-        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.42">
+        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.44">
 
         <label for="maintenanceDate">日期</label>
         <input id="maintenanceDate" type="text" inputmode="numeric" placeholder="2026/08/24" maxlength="10">
@@ -145,6 +145,6 @@
     </div>
     <div class="footer">POWER by hhhyyy</div>
   </main>
-  <script src="/maintenance.js?v=5.35"></script>
+  <script src="/maintenance.js?v=5.43"></script>
 </body>
 </html>
