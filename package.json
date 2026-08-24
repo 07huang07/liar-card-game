@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.32.0",
+  "version": "5.33.0",
   "private": true,
-  "description": "Card Game Hub V5.32：吹牛上下玩家框移至牌桌邊緣，中央牌組完全不遮擋",
+  "description": "Card Game Hub V5.33：吹牛牌桌上移並增加與手牌區安全距離",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

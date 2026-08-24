@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.28",
+    version: "V5.33",
     date: "2026/08/24",
-    content: "吹牛手牌區左右加寬、玩家資訊框統一尺寸並對稱排列；維修日記改為只顯示最新版本摘要。"
+    content: "吹牛牌桌整體往上移並稍微縮小，增加牌桌與底部手牌區的安全距離，避免下緣再次遮擋手牌。"
   }
 ];
 

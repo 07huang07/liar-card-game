@@ -3908,3 +3908,92 @@ main {
     bottom: 3px !important;
   }
 }
+
+
+/* =========================================================
+   V5.33 吹牛版面
+   - 牌桌整體往上移
+   - 與手牌區保留更明顯安全距離
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* 中央區增加牌桌與手牌之間的視覺空隙 */
+  .centerGame {
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      238px !important;
+    gap: 14px !important;
+  }
+
+  /* 整個牌桌場景往上提 */
+  .compactTableScene {
+    transform: translateY(-18px) !important;
+    padding-bottom: 14px !important;
+    overflow: visible !important;
+  }
+
+  /* 牌桌稍微再縮一點，確保下緣不碰手牌區 */
+  .compactTable {
+    width: min(88%, 940px) !important;
+    max-width: 940px !important;
+    height: min(86%, 410px) !important;
+    min-height: 315px !important;
+    max-height: 410px !important;
+  }
+
+  /* 下方玩家框也跟著往牌桌內收，保持與手牌區距離 */
+  .compactTable .seat-bottom {
+    bottom: 16px !important;
+  }
+
+  /* 手牌區略往下固定，完全獨立 */
+  .centerGame > .handDock {
+    height: 238px !important;
+    min-height: 238px !important;
+    max-height: 238px !important;
+    margin-top: 2px !important;
+    z-index: 20 !important;
+  }
+}
+
+/* 中型螢幕 */
+@media (max-width: 1360px) and (min-width: 801px) {
+
+  .compactTableScene {
+    transform: translateY(-14px) !important;
+  }
+
+  .compactTable {
+    width: min(86%, 840px) !important;
+    max-width: 840px !important;
+    height: min(84%, 380px) !important;
+    max-height: 380px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: 14px !important;
+  }
+}
+
+/* 低高度桌機：仍優先上移牌桌，不壓縮手牌區 */
+@media (max-height: 780px) and (min-width: 801px) {
+
+  .compactTableScene {
+    transform: translateY(-10px) !important;
+  }
+
+  .compactTable {
+    width: min(82%, 790px) !important;
+    height: min(78%, 325px) !important;
+    min-height: 255px !important;
+    max-height: 325px !important;
+  }
+
+  .centerGame > .handDock {
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+  }
+}
