@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.37",
+    version: "V5.38",
     date: "2026/08/24",
-    content: "吹牛建立／加入房間起始頁改為與大老二一致的精簡版面；遊戲畫面、規則與其他功能皆不變。"
+    content: "遊戲大廳移除遊戲卡片解說文字；維修人員署名更新為「硯🦆」。"
   }
 ];
 
