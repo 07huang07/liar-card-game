@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
+const fs = require("fs");
 const crypto = require("crypto");
 const helmet = require("helmet");
 
@@ -38,6 +39,8 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   next();
 });
+
+app.use(express.json({ limit: "16kb" }));
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -657,6 +660,100 @@ function big2CanBeat(play,last){
   return play.score > last.score;
 }
 
+
+const MAINTENANCE_PASSWORD = process.env.MAINTENANCE_PASSWORD || "321";
+const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
+
+const DEFAULT_MAINTENANCE_ENTRIES = [
+  {
+    date: "2026/08/24",
+    content: "吹牛新增建立房間時自訂回合數；離開遊戲統一返回遊戲大廳；新增維修日記。"
+  },
+  {
+    date: "2026/08/24",
+    content: "修正吹牛抓吹牛按鈕顯示，讓上一手以外的玩家皆可抓吹牛。"
+  },
+  {
+    date: "2026/08/23",
+    content: "吹牛新增回合制、聊天室、排行榜與多人房間介面優化。"
+  },
+  {
+    date: "2026/08/23",
+    content: "新增大老二、牌型預覽、出牌紀錄與積分排行功能。"
+  }
+];
+
+function readMaintenanceEntries() {
+  try {
+    if (!fs.existsSync(MAINTENANCE_FILE)) {
+      fs.writeFileSync(
+        MAINTENANCE_FILE,
+        JSON.stringify(DEFAULT_MAINTENANCE_ENTRIES, null, 2),
+        "utf8"
+      );
+      return [...DEFAULT_MAINTENANCE_ENTRIES];
+    }
+
+    const parsed = JSON.parse(fs.readFileSync(MAINTENANCE_FILE, "utf8"));
+    return Array.isArray(parsed) ? parsed.slice(0, 100) : [...DEFAULT_MAINTENANCE_ENTRIES];
+  } catch (err) {
+    console.error("Maintenance log read error:", err?.message || err);
+    return [...DEFAULT_MAINTENANCE_ENTRIES];
+  }
+}
+
+function writeMaintenanceEntries(entries) {
+  fs.writeFileSync(
+    MAINTENANCE_FILE,
+    JSON.stringify(entries.slice(0, 100), null, 2),
+    "utf8"
+  );
+}
+
+app.get("/api/maintenance", (req, res) => {
+  res.json({
+    ok: true,
+    entries: readMaintenanceEntries()
+  });
+});
+
+app.post("/api/maintenance", (req, res) => {
+  const password = String(req.body?.password ?? "");
+  const date = safeText(req.body?.date, 10);
+  const content = safeText(req.body?.content, 240);
+
+  if (password !== MAINTENANCE_PASSWORD) {
+    return res.status(401).json({
+      ok: false,
+      message: "密碼錯誤"
+    });
+  }
+
+  if (!/^\d{4}\/\d{2}\/\d{2}$/.test(date)) {
+    return res.status(400).json({
+      ok: false,
+      message: "日期格式必須是 YYYY/MM/DD"
+    });
+  }
+
+  if (!content) {
+    return res.status(400).json({
+      ok: false,
+      message: "請輸入維修內容"
+    });
+  }
+
+  const entries = readMaintenanceEntries();
+  entries.unshift({ date, content });
+  writeMaintenanceEntries(entries);
+
+  res.json({
+    ok: true,
+    entries
+  });
+});
+
+
 io.on("connection", socket => {
   socket.on("createRoom", ({ name, animal, gameType = "liar", roundLimit = 20 }, cb) => {
     if (!allowSocketAction(socket, "createRoom", 3, 10000)) {
@@ -843,21 +940,56 @@ io.on("connection", socket => {
   socket.on("big2Rematch", (_, cb) => {
     const room = rooms.get(socket.data.roomCode);
 
-    if(!room || room.gameType !== "big2"){
-      return cb?.({ok:false,message:"這不是大老二房間"});
+    if (!room || room.gameType !== "big2") {
+      return cb?.({ ok: false, message: "這不是大老二房間" });
     }
 
-    if(room.started){
-      return cb?.({ok:false,message:"目前牌局尚未結束"});
+    if (room.players[0]?.id !== socket.id) {
+      return cb?.({ ok: false, message: "只有房主可以開始下一場" });
     }
 
-    if(room.players.length < 2){
-      return cb?.({ok:false,message:"至少需要 2 位玩家"});
+    if (room.started) {
+      return cb?.({ ok: false, message: "目前牌局尚未結束" });
+    }
+
+    if (!room.winnerId) {
+      return cb?.({ ok: false, message: "目前沒有已完成的牌局" });
+    }
+
+    if (room.players.length < 2) {
+      return cb?.({ ok: false, message: "至少需要 2 位玩家" });
     }
 
     big2Deal(room);
+    io.to(room.code).emit("big2RematchStarted");
     emitRoom(room);
-    cb?.({ok:true});
+    cb?.({ ok: true });
+  });
+
+  socket.on("big2EndSession", (_, cb) => {
+    const room = rooms.get(socket.data.roomCode);
+
+    if (!room || room.gameType !== "big2") {
+      return cb?.({ ok: false, message: "這不是大老二房間" });
+    }
+
+    if (room.players[0]?.id !== socket.id) {
+      return cb?.({ ok: false, message: "只有房主可以結束遊戲" });
+    }
+
+    io.to(room.code).emit("sessionEnded");
+
+    for (const player of room.players) {
+      const playerSocket = io.sockets.sockets.get(player.id);
+
+      if (playerSocket) {
+        playerSocket.leave(room.code);
+        playerSocket.data.roomCode = null;
+      }
+    }
+
+    rooms.delete(room.code);
+    cb?.({ ok: true });
   });
 
   socket.on("big2Pass", (_, cb) => {

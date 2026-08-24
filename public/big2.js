@@ -53,29 +53,41 @@ $("big2Pass").onclick=()=>socket.emit("big2Pass",{},r=>{
 $("big2Exit").onclick=()=>socket.emit("leaveRoom",{},()=>location.href="/");
 
 $("settlementLeave").onclick=()=>{
-  socket.emit("leaveRoom",{},()=>{
-    location.href="/";
+  const isHost = state?.hostId === socket.id;
+
+  if (isHost) {
+    $("settlementLeave").disabled = true;
+    $("settlementMsg").textContent = "正在結束遊戲…";
+
+    socket.emit("big2EndSession", {}, res => {
+      if (!res?.ok) {
+        $("settlementLeave").disabled = false;
+        $("settlementMsg").textContent = res?.message || "無法結束遊戲";
+      }
+    });
+
+    return;
+  }
+
+  socket.emit("leaveRoom", {}, () => {
+    location.href = "/";
   });
 };
 
 $("settlementRematch").onclick=()=>{
-  $("settlementRematch").disabled=true;
-  $("settlementMsg").textContent="正在開始下一場…";
+  if (state?.hostId !== socket.id) return;
 
-  socket.emit("big2Rematch",{},res=>{
-    $("settlementRematch").disabled=false;
+  $("settlementRematch").disabled = true;
+  $("settlementMsg").textContent = "正在開始下一場…";
 
-    if(!res?.ok){
-      $("settlementMsg").textContent=res?.message||"無法開始下一場";
+  socket.emit("big2Rematch", {}, res => {
+    if (!res?.ok) {
+      $("settlementRematch").disabled = false;
+      $("settlementMsg").textContent = res?.message || "無法開始下一場";
       return;
     }
 
-    closeSettlement();
-    $("settlementMsg").textContent="";
-    selected.clear();
-    setSelectedType(null);
-    setPassReminder(false);
-    lastAutoPreviewKey="";
+    $("settlementMsg").textContent = "";
   });
 };
 
@@ -349,7 +361,22 @@ function renderSettlement(){
       <span>${p.wins||0} 勝</span>
     </div>`).join("");
 
-  $("settlementMsg").textContent="";
+  const isHost = state.hostId === socket.id;
+
+  if (isHost) {
+    $("settlementLeave").textContent = "結束遊戲";
+    $("settlementLeave").disabled = false;
+    $("settlementRematch").textContent = "再來一場";
+    $("settlementRematch").disabled = false;
+    $("settlementMsg").textContent = "你是房主，可以選擇結束遊戲或開始下一場。";
+  } else {
+    $("settlementLeave").textContent = "退出遊戲";
+    $("settlementLeave").disabled = false;
+    $("settlementRematch").textContent = "等待房主";
+    $("settlementRematch").disabled = true;
+    $("settlementMsg").textContent = "等待房主決定是否再來一場。";
+  }
+
   overlay.classList.remove("hidden");
   lastSettlementTs=summary.ts||Date.now();
 }
@@ -380,6 +407,17 @@ function render(){
 
 socket.on("yourHand",cards=>{if(state?.gameType==="big2"||location.pathname.includes("big2")){hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand()}});
 socket.on("roomState",s=>{if(s.gameType!=="big2")return;state=s;render()});
+socket.on("big2RematchStarted",()=>{
+  closeSettlement();
+  selected.clear();
+  setSelectedType(null);
+  setPassReminder(false);
+  comboOverlayOpenedByAuto=false;
+  lastAutoPreviewKey="";
+});
+socket.on("sessionEnded",()=>{
+  location.href="/";
+});
 socket.on("chatMessage",m=>{if(!state)return;state.chat=[...(state.chat||[]),m].slice(-30);renderChat(state.chat)});
 
 $("big2ChatSend").onclick=sendChat;

@@ -16,7 +16,21 @@
     .enter{padding:12px 16px;border-radius:12px;font-weight:900;text-align:center;background:#278353}
     .big2 .enter{background:#3158a8}.footer{text-align:center;margin-top:20px;color:#777;font-size:12px}
     @media(max-width:700px){.games{grid-template-columns:1fr}.hub{padding:20px}}
-  .maintenanceDiary{margin-top:28px;padding:20px 22px;border:1px solid #343434;border-radius:18px;background:#121212;text-align:left}.maintenanceDiary h2{margin:0 0 14px;color:#ffd45b}.maintenanceEntry{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid #292929;line-height:1.55}.maintenanceEntry time{color:#aaa}.maintenanceEntry span{color:#eee}.maintenanceSign{margin-top:15px;text-align:right;color:#aaa;font-weight:700}@media(max-width:640px){.maintenanceEntry{grid-template-columns:1fr;gap:3px}}</style>
+  .maintenanceDiary{margin-top:28px;padding:20px 22px;border:1px solid #343434;border-radius:18px;background:#121212;text-align:left}.maintenanceDiary h2{margin:0 0 14px;color:#ffd45b}.maintenanceEntry{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid #292929;line-height:1.55}.maintenanceEntry time{color:#aaa}.maintenanceEntry span{color:#eee}.maintenanceSign{margin-top:15px;text-align:right;color:#aaa;font-weight:700}@media(max-width:640px){.maintenanceEntry{grid-template-columns:1fr;gap:3px}}
+    .maintenanceHead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    #maintenanceChannelBtn{border:1px solid #66551f;background:#2a2412;color:#ffd45b;border-radius:10px;padding:8px 13px;font-weight:900;cursor:pointer}
+    #maintenanceChannelBtn:hover{background:#3a3117}
+    .maintenanceModal{position:fixed;inset:0;z-index:5000;display:grid;place-items:center;background:rgba(0,0,0,.72);padding:18px}
+    .maintenanceModal.hidden{display:none}
+    .maintenanceModalCard{position:relative;width:min(92vw,520px);padding:24px;border:1px solid #4b4b4b;border-radius:18px;background:#151515;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+    .maintenanceModalCard h2{margin:0 0 8px;color:#ffd45b}.maintenanceModalCard p{color:#aaa}
+    .maintenanceModalCard label{display:block;margin:12px 0 5px;font-weight:800}
+    .maintenanceModalCard input,.maintenanceModalCard textarea{width:100%;box-sizing:border-box;border:1px solid #444;border-radius:10px;background:#0d0d0d;color:#fff;padding:10px 12px;font:inherit}
+    .maintenanceModalCard textarea{resize:vertical}
+    .maintenanceClose{position:absolute;right:12px;top:10px;border:0;background:transparent;color:#bbb;font-size:26px;cursor:pointer}
+    .maintenanceSave{width:100%;margin-top:14px;border:0;border-radius:11px;background:#278353;color:white;padding:11px;font-weight:900;cursor:pointer}
+    .maintenanceMessage{min-height:22px;margin-top:10px;color:#ffcf69}
+</style>
 </head>
 <body>
   <main class="hub">
@@ -41,14 +55,42 @@
       </a>
     </section>
     <section class="maintenanceDiary">
-      <h2>🔧 維修日記</h2>
-      <div class="maintenanceEntry"><time>2026/08/24</time><span>吹牛新增建立房間時自訂回合數；離開遊戲統一返回遊戲大廳；新增維修日記。</span></div>
-      <div class="maintenanceEntry"><time>2026/08/24</time><span>修正吹牛抓吹牛按鈕顯示，讓上一手以外的玩家皆可抓吹牛。</span></div>
-      <div class="maintenanceEntry"><time>2026/08/23</time><span>吹牛新增回合制、聊天室、排行榜與多人房間介面優化。</span></div>
-      <div class="maintenanceEntry"><time>2026/08/23</time><span>新增大老二、牌型預覽、出牌紀錄與積分排行功能。</span></div>
+      <div class="maintenanceHead">
+        <h2>🔧 維修日記</h2>
+        <button id="maintenanceChannelBtn" type="button">維修通道</button>
+      </div>
+
+      <div id="maintenanceEntries">
+        <div class="maintenanceEntry"><time>2026/08/24</time><span>吹牛新增建立房間時自訂回合數；離開遊戲統一返回遊戲大廳；新增維修日記。</span></div>
+        <div class="maintenanceEntry"><time>2026/08/24</time><span>修正吹牛抓吹牛按鈕顯示，讓上一手以外的玩家皆可抓吹牛。</span></div>
+        <div class="maintenanceEntry"><time>2026/08/23</time><span>吹牛新增回合制、聊天室、排行榜與多人房間介面優化。</span></div>
+        <div class="maintenanceEntry"><time>2026/08/23</time><span>新增大老二、牌型預覽、出牌紀錄與積分排行功能。</span></div>
+      </div>
+
       <div class="maintenanceSign">維修紀錄｜硯O黃</div>
     </section>
+
+    <div id="maintenanceModal" class="maintenanceModal hidden">
+      <div class="maintenanceModalCard">
+        <button id="maintenanceClose" class="maintenanceClose" type="button">×</button>
+        <h2>🔐 維修通道</h2>
+        <p>輸入維修密碼後即可新增維修日記。</p>
+
+        <label for="maintenancePassword">密碼</label>
+        <input id="maintenancePassword" type="password" autocomplete="current-password" maxlength="32">
+
+        <label for="maintenanceDate">日期</label>
+        <input id="maintenanceDate" type="text" inputmode="numeric" placeholder="2026/08/24" maxlength="10">
+
+        <label for="maintenanceContent">維修內容</label>
+        <textarea id="maintenanceContent" maxlength="240" rows="5" placeholder="輸入本次維修的簡要內容"></textarea>
+
+        <div id="maintenanceMessage" class="maintenanceMessage"></div>
+        <button id="maintenanceSave" class="maintenanceSave" type="button">新增維修紀錄</button>
+      </div>
+    </div>
     <div class="footer">POWER by hhhyyy</div>
   </main>
+  <script src="/maintenance.js?v=5.25"></script>
 </body>
 </html>

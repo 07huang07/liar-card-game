@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.24.0",
+  "version": "5.25.0",
   "private": true,
-  "description": "Card Game Hub V5.24：吹牛建立頁與遊戲頁分離、聊天室縮小、手牌依張數自動縮放",
+  "description": "Card Game Hub V5.25：大老二房主控制結算續局，遊戲大廳新增密碼維修通道",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
