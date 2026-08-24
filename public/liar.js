@@ -387,14 +387,48 @@ function renderHand(){
     rows >= 3 && hand.length > 39
   );
   $("hand").innerHTML="";
-  hand.forEach((card,index)=>{
+
+  // V5.27：只改「顯示順序」，不改伺服器手牌陣列。
+  // selected 仍保存原始 index，所以出牌資料不會錯位。
+  const rankOrder = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  const suitOrder = {"♠":0,"♥":1,"♦":2,"♣":3};
+
+  const displayHand = hand
+    .map((card, originalIndex) => ({ card, originalIndex }))
+    .sort((a,b) => {
+      const rankDiff = rankOrder.indexOf(a.card.rank) - rankOrder.indexOf(b.card.rank);
+      if (rankDiff !== 0) return rankDiff;
+      return (suitOrder[a.card.suit] ?? 99) - (suitOrder[b.card.suit] ?? 99);
+    });
+
+  let previousRank = null;
+
+  displayHand.forEach(({card, originalIndex})=>{
     const el=document.createElement("button");
     el.type="button";
+
     const red=card.suit==="♥"||card.suit==="♦";
-    el.className="card"+(red?" red":"")+(selected.has(index)?" selected":"");
+    const newGroup = previousRank !== null && previousRank !== card.rank;
+
+    el.className =
+      "card" +
+      (red ? " red" : "") +
+      (selected.has(originalIndex) ? " selected" : "") +
+      (newGroup ? " rankGroupStart" : "");
+
     el.textContent=`${card.suit}${card.rank}`;
-    el.onclick=()=>{selected.has(index)?selected.delete(index):selected.add(index);renderHand();};
+    el.dataset.rank = card.rank;
+    el.dataset.originalIndex = String(originalIndex);
+
+    el.onclick=()=>{
+      selected.has(originalIndex)
+        ? selected.delete(originalIndex)
+        : selected.add(originalIndex);
+      renderHand();
+    };
+
     $("hand").appendChild(el);
+    previousRank = card.rank;
   });
 }
 
