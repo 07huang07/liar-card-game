@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.34.0",
+  "version": "5.35.0",
   "private": true,
-  "description": "Card Game Hub V5.34：吹牛上下玩家框拉開，剩餘牌數改為獨立徽章",
+  "description": "Card Game Hub V5.35：修正吹牛剩餘牌數獨立徽章顯示",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

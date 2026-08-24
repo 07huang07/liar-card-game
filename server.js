@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.34",
+    version: "V5.35",
     date: "2026/08/24",
-    content: "吹牛上下玩家資訊框再向牌桌外側拉開，避免遮擋中央牌組；剩餘牌數移出玩家框，改為旁邊獨立小框顯示。"
+    content: "修正吹牛玩家框旁的剩餘牌數小框未顯示問題；牌桌、牌組、玩家框位置與手牌區維持不變。"
   }
 ];
 

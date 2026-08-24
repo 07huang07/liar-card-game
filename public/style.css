@@ -4108,3 +4108,86 @@ main {
     bottom: -8px !important;
   }
 }
+
+
+/* =========================================================
+   V5.35 吹牛
+   只修正剩餘牌數徽章顯示
+   不改牌桌、牌組、玩家框位置、手牌區
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* V5.34 的牌數框被 seat overflow:hidden 裁掉；
+     改為 visible，玩家框本體外觀與位置不變。 */
+  .compactTable .seat {
+    overflow: visible !important;
+  }
+
+  /* 其餘文字仍限制在玩家框內，避免名稱溢出 */
+  .compactTable .seat .avatar,
+  .compactTable .seat .name,
+  .compactTable .seat .record {
+    max-width: 100% !important;
+  }
+
+  .compactTable .seat .name {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* 剩餘牌數小框：更醒目，內容只顯示數字 */
+  .compactTable .seat .cardCountBadge {
+    position: absolute !important;
+    z-index: 999 !important;
+
+    min-width: 34px !important;
+    height: 28px !important;
+    padding: 0 7px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: #111 !important;
+    color: #ffd75b !important;
+    border: 2px solid #ffd75b !important;
+    border-radius: 9px !important;
+
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+
+    box-shadow: 0 3px 10px rgba(0,0,0,.45) !important;
+    pointer-events: none !important;
+  }
+
+  /* 上下玩家：放右側 */
+  .compactTable .seat-top .cardCountBadge,
+  .compactTable .seat-bottom .cardCountBadge {
+    right: -42px !important;
+    top: 50% !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 左側玩家：牌數放右邊 */
+  .compactTable .seat-left .cardCountBadge {
+    right: -42px !important;
+    top: 50% !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 右側玩家：牌數放左邊 */
+  .compactTable .seat-right .cardCountBadge {
+    left: -42px !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+}
