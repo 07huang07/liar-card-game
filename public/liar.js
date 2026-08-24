@@ -176,10 +176,8 @@ function renderChat(messages = []) {
   if (!box) return;
 
   box.innerHTML = messages.map(m => {
-    const d = new Date(m.ts || Date.now());
-    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     return `<div class="chatMessage ${m.playerId===socket.id?"mine":""}">
-      <div class="chatMeta">${escapeHtml(m.animal || "🐶")} <strong>${escapeHtml(m.name || "玩家")}</strong> <span>${escapeHtml(time)}</span></div>
+      <div class="chatMeta"><strong>${escapeHtml(m.name || "玩家")}</strong></div>
       <div class="chatText">${escapeHtml(m.text || "")}</div>
     </div>`;
   }).join("");
@@ -261,7 +259,7 @@ function renderState(){
   const myTurn=!!me?.isTurn;
   const rankedPlayers=[...state.players].sort((a,b)=>(b.wins||0)-(a.wins||0)||(a.losses||0)-(b.losses||0));
   const medals=["🥇","🥈","🥉","4️⃣"];
-  $("leaderboard").innerHTML=rankedPlayers.map((p,i)=>`<div class="leaderRow ${p.id===socket.id?"me":""}"><span>${medals[i]||i+1}</span><span class="leaderName">${escapeHtml(p.animal||"🐶")} ${escapeHtml(p.name)}</span><strong>${p.wins||0}勝</strong><span>${p.losses||0}敗</span></div>`).join("");
+  $("leaderboard").innerHTML=rankedPlayers.map((p,i)=>`<div class="leaderRow ${p.id===socket.id?"me":""}"><span>${medals[i]||i+1}</span><span class="leaderName">${escapeHtml(p.name)}</span><strong>${p.wins||0}勝</strong><span>${p.losses||0}敗</span></div>`).join("");
 
   const tableRankBadge = $("tableRoundRankBadge");
   if (state.roundRank) {

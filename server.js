@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.38",
+    version: "V5.39",
     date: "2026/08/24",
-    content: "遊戲大廳移除遊戲卡片解說文字；維修人員署名更新為「硯🦆」。"
+    content: "吹牛左側介面精簡：排行榜移除動物頭像，聊天室只顯示玩家名稱、不顯示時間；其餘功能不變。"
   }
 ];
 

@@ -2,7 +2,7 @@
   "name": "liar-card-game",
   "version": "5.37.0",
   "private": true,
-  "description": "Card Game Hub V5.38：遊戲大廳精簡與維修署名更新",
+  "description": "Card Game Hub V5.39：吹牛左側排行榜與聊天室精簡",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
