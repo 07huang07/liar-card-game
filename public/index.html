@@ -30,6 +30,34 @@
     .maintenanceClose{position:absolute;right:12px;top:10px;border:0;background:transparent;color:#bbb;font-size:26px;cursor:pointer}
     .maintenanceSave{width:100%;margin-top:14px;border:0;border-radius:11px;background:#278353;color:white;padding:11px;font-weight:900;cursor:pointer}
     .maintenanceMessage{min-height:22px;margin-top:10px;color:#ffcf69}
+
+    .maintenanceEntry.latestOnly{
+      display:block;
+      padding:14px 0;
+    }
+    .maintenanceMeta{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px;
+    }
+    .maintenanceVersion{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:58px;
+      padding:4px 9px;
+      border-radius:999px;
+      background:#2b2514;
+      border:1px solid #66551f;
+      color:#ffd45b;
+      font-weight:900;
+    }
+    .maintenanceSummary{
+      display:block;
+      color:#eee;
+      line-height:1.6;
+    }
 </style>
 </head>
 <body>
@@ -61,14 +89,42 @@
       </div>
 
       <div id="maintenanceEntries">
-        <div class="maintenanceEntry"><time>2026/08/24</time><span>吹牛新增建立房間時自訂回合數；離開遊戲統一返回遊戲大廳；新增維修日記。</span></div>
-        <div class="maintenanceEntry"><time>2026/08/24</time><span>修正吹牛抓吹牛按鈕顯示，讓上一手以外的玩家皆可抓吹牛。</span></div>
-        <div class="maintenanceEntry"><time>2026/08/23</time><span>吹牛新增回合制、聊天室、排行榜與多人房間介面優化。</span></div>
-        <div class="maintenanceEntry"><time>2026/08/23</time><span>新增大老二、牌型預覽、出牌紀錄與積分排行功能。</span></div>
+        <div class="maintenanceEntry latestOnly">
+          <div class="maintenanceMeta">
+            <span class="maintenanceVersion">V5.28</span>
+            <time>2026/08/24</time>
+          </div>
+          <span class="maintenanceSummary">
+            吹牛手牌區左右加寬、玩家資訊框統一尺寸並對稱排列；維修日記改為只顯示最新版本摘要。
+          </span>
+        </div>
       </div>
 
       <div class="maintenanceSign">維修紀錄｜硯O黃</div>
     </section>
+
+    <div id="maintenanceModal" class="maintenanceModal hidden">
+      <div class="maintenanceModalCard">
+        <button id="maintenanceClose" class="maintenanceClose" type="button">×</button>
+        <h2>🔐 維修通道</h2>
+        <p>輸入維修密碼後即可更新最新維修日記。</p>
+
+        <label for="maintenancePassword">密碼</label>
+        <input id="maintenancePassword" type="password" autocomplete="current-password" maxlength="32">
+
+        <label for="maintenanceVersion">版本編號</label>
+        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.28">
+
+        <label for="maintenanceDate">日期</label>
+        <input id="maintenanceDate" type="text" inputmode="numeric" placeholder="2026/08/24" maxlength="10">
+
+        <label for="maintenanceContent">更新摘要</label>
+        <textarea id="maintenanceContent" maxlength="240" rows="5" placeholder="輸入最新版本更新摘要"></textarea>
+
+        <div id="maintenanceMessage" class="maintenanceMessage"></div>
+        <button id="maintenanceSave" class="maintenanceSave" type="button">更新最新維修紀錄</button>
+      </div>
+    </div>
 
     <div id="maintenanceModal" class="maintenanceModal hidden">
       <div class="maintenanceModalCard">
@@ -91,6 +147,6 @@
     </div>
     <div class="footer">POWER by hhhyyy</div>
   </main>
-  <script src="/maintenance.js?v=5.25"></script>
+  <script src="/maintenance.js?v=5.28"></script>
 </body>
 </html>

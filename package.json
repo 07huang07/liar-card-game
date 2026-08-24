@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.27.0",
+  "version": "5.28.0",
   "private": true,
-  "description": "Card Game Hub V5.27：吹牛玩家框與手牌區完全分離，同點數手牌自動分組",
+  "description": "Card Game Hub V5.28：吹牛手牌區加寬、玩家框統一對稱、維修日記只保留最新版本",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

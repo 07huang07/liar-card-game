@@ -666,20 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
+    version: "V5.28",
     date: "2026/08/24",
-    content: "吹牛新增建立房間時自訂回合數；離開遊戲統一返回遊戲大廳；新增維修日記。"
-  },
-  {
-    date: "2026/08/24",
-    content: "修正吹牛抓吹牛按鈕顯示，讓上一手以外的玩家皆可抓吹牛。"
-  },
-  {
-    date: "2026/08/23",
-    content: "吹牛新增回合制、聊天室、排行榜與多人房間介面優化。"
-  },
-  {
-    date: "2026/08/23",
-    content: "新增大老二、牌型預覽、出牌紀錄與積分排行功能。"
+    content: "吹牛手牌區左右加寬、玩家資訊框統一尺寸並對稱排列；維修日記改為只顯示最新版本摘要。"
   }
 ];
 
@@ -695,7 +684,7 @@ function readMaintenanceEntries() {
     }
 
     const parsed = JSON.parse(fs.readFileSync(MAINTENANCE_FILE, "utf8"));
-    return Array.isArray(parsed) ? parsed.slice(0, 100) : [...DEFAULT_MAINTENANCE_ENTRIES];
+    return Array.isArray(parsed) ? parsed.slice(0, 1) : [...DEFAULT_MAINTENANCE_ENTRIES];
   } catch (err) {
     console.error("Maintenance log read error:", err?.message || err);
     return [...DEFAULT_MAINTENANCE_ENTRIES];
@@ -705,7 +694,7 @@ function readMaintenanceEntries() {
 function writeMaintenanceEntries(entries) {
   fs.writeFileSync(
     MAINTENANCE_FILE,
-    JSON.stringify(entries.slice(0, 100), null, 2),
+    JSON.stringify(entries.slice(0, 1), null, 2),
     "utf8"
   );
 }
@@ -719,6 +708,7 @@ app.get("/api/maintenance", (req, res) => {
 
 app.post("/api/maintenance", (req, res) => {
   const password = String(req.body?.password ?? "");
+  const version = safeText(req.body?.version, 16);
   const date = safeText(req.body?.date, 10);
   const content = safeText(req.body?.content, 240);
 
@@ -726,6 +716,13 @@ app.post("/api/maintenance", (req, res) => {
     return res.status(401).json({
       ok: false,
       message: "密碼錯誤"
+    });
+  }
+
+  if (!version) {
+    return res.status(400).json({
+      ok: false,
+      message: "請輸入版本編號"
     });
   }
 
@@ -743,8 +740,7 @@ app.post("/api/maintenance", (req, res) => {
     });
   }
 
-  const entries = readMaintenanceEntries();
-  entries.unshift({ date, content });
+  const entries = [{ version, date, content }];
   writeMaintenanceEntries(entries);
 
   res.json({

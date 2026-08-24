@@ -2634,3 +2634,167 @@ main {
     bottom: 58px !important;
   }
 }
+
+
+/* =========================================================
+   V5.28 吹牛版面
+   - 手牌區左右延伸
+   - 玩家資訊框統一尺寸並對稱定位
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* 左右欄再縮一點，把更多寬度讓給中間 */
+  .gameGrid {
+    grid-template-columns: 108px minmax(0, 1fr) 190px !important;
+    gap: 5px !important;
+  }
+
+  .sidePanel {
+    width: 108px !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+  }
+
+  .controlPanel {
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+  }
+
+  /* 手牌區向左右完整貼齊中間欄 */
+  .centerGame > .handDock {
+    width: calc(100% + 14px) !important;
+    max-width: none !important;
+    margin-left: -7px !important;
+    margin-right: -7px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .centerGame > .handDock .hand {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 所有玩家資訊框統一 */
+  .compactTable .seat {
+    width: 112px !important;
+    min-width: 112px !important;
+    max-width: 112px !important;
+    height: 104px !important;
+    min-height: 104px !important;
+    max-height: 104px !important;
+    padding: 7px 8px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .compactTable .seat .avatar {
+    font-size: 28px !important;
+    line-height: 1 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .compactTable .seat .name {
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    margin: 1px 0 !important;
+    text-align: center !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .compactTable .seat .cards,
+  .compactTable .seat .record {
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+  }
+
+  /* 對稱定位：
+     top / bottom 同一垂直軸
+     left / right 同一水平軸 */
+  .compactTable .seat-top {
+    top: 26px !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: 26px !important;
+    left: 50% !important;
+    right: auto !important;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .compactTable .seat-left {
+    left: 26px !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .compactTable .seat-right {
+    right: 26px !important;
+    top: 50% !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 手牌牌面保持清楚，同點數仍排在一起 */
+  .centerGame > .handDock .hand .card {
+    border-radius: 9px !important;
+  }
+
+  .centerGame > .handDock .hand .card.rankGroupStart {
+    margin-left: 5px !important;
+  }
+}
+
+/* 1360 以下仍維持對稱與更大的中間區 */
+@media (max-width: 1360px) and (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 100px minmax(0,1fr) 180px !important;
+    gap: 4px !important;
+  }
+
+  .sidePanel {
+    width: 100px !important;
+    min-width: 100px !important;
+    max-width: 100px !important;
+  }
+
+  .controlPanel {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+
+  .compactTable .seat {
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    height: 98px !important;
+    min-height: 98px !important;
+    max-height: 98px !important;
+  }
+
+  .compactTable .seat-top { top: 22px !important; }
+  .compactTable .seat-bottom { bottom: 22px !important; }
+  .compactTable .seat-left { left: 22px !important; }
+  .compactTable .seat-right { right: 22px !important; }
+}
