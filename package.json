@@ -1,14 +1,15 @@
 {
   "name": "liar-card-game",
-  "version": "5.20.0",
+  "version": "5.21.0",
   "private": true,
-  "description": "Card Game Hub V5.20：修正自訂回合同步、吹牛52張全發、四張同點數自動丟棄動畫",
+  "description": "Card Game Hub V5.21：資安強化版",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "helmet": "^8.1.0"
   }
 }

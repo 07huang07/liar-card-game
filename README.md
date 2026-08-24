@@ -330,3 +330,13 @@ http://localhost:3000
 - 玩家手中出現四張相同點數時，四張會自動丟棄。
 - 發牌後與抓吹牛收牌後都會檢查四張同點數。
 - 自動丟棄會播放四張牌飛走動畫，並顯示提示與剩餘手牌數。
+
+## V5.21 資安強化
+- 加入 Helmet、CSP、Referrer-Policy、Permissions-Policy 與 nosniff。
+- 關閉 Express X-Powered-By。
+- 限制 Socket.io payload 大小。
+- 建立房間、加入房間、出牌、抓吹牛、Pass、聊天室等加入伺服器端 rate limit。
+- 一分鐘內連續猜錯房號 8 次，暫停加入房間 30 秒。
+- 三位數房號改用 crypto.randomInt() 產生。
+- 暱稱、聊天室、房號、回合數都由伺服器再次驗證與清理。
+- 404 / 500 不回傳 stack trace。

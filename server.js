@@ -3,14 +3,134 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const crypto = require("crypto");
+const helmet = require("helmet");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  maxHttpBufferSize: 64 * 1024,
+  pingTimeout: 20000,
+  pingInterval: 25000
+});
+
+app.disable("x-powered-by");
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "ws:", "wss:"],
+      objectSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+app.use((req, res, next) => {
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  next();
+});
 
 app.use(express.static(path.join(__dirname, "public")));
 
 const rooms = new Map();
+
+const securityState = {
+  socketActions: new Map(),
+  joinFailures: new Map()
+};
+
+function safeText(value, maxLength = 32) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function safeRoomCode(value) {
+  return String(value ?? "").replace(/\D/g, "").slice(0, 3);
+}
+
+function safeInteger(value, min, max, fallback) {
+  const n = Number.parseInt(value, 10);
+  return Number.isInteger(n) ? Math.min(max, Math.max(min, n)) : fallback;
+}
+
+function allowSocketAction(socket, key, limit = 8, windowMs = 3000) {
+  const now = Date.now();
+  const id = `${socket.id}:${key}`;
+  const previous = securityState.socketActions.get(id) || [];
+  const recent = previous.filter(ts => now - ts < windowMs);
+
+  if (recent.length >= limit) {
+    securityState.socketActions.set(id, recent);
+    return false;
+  }
+
+  recent.push(now);
+  securityState.socketActions.set(id, recent);
+  return true;
+}
+
+function joinAttemptKey(socket) {
+  const forwarded = socket.handshake.headers["x-forwarded-for"];
+  return String(forwarded || socket.handshake.address || "unknown")
+    .split(",")[0]
+    .trim();
+}
+
+function canAttemptJoin(socket) {
+  const key = joinAttemptKey(socket);
+  const now = Date.now();
+  const state = securityState.joinFailures.get(key);
+
+  if (!state) return true;
+  if (state.lockedUntil && now < state.lockedUntil) return false;
+
+  if (state.lockedUntil && now >= state.lockedUntil) {
+    securityState.joinFailures.delete(key);
+  }
+
+  return true;
+}
+
+function recordJoinFailure(socket) {
+  const key = joinAttemptKey(socket);
+  const now = Date.now();
+  const state = securityState.joinFailures.get(key) || {
+    count: 0,
+    firstAt: now,
+    lockedUntil: 0
+  };
+
+  if (now - state.firstAt > 60_000) {
+    state.count = 0;
+    state.firstAt = now;
+  }
+
+  state.count += 1;
+
+  if (state.count >= 8) {
+    state.lockedUntil = now + 30_000;
+  }
+
+  securityState.joinFailures.set(key, state);
+}
+
+function clearJoinFailures(socket) {
+  securityState.joinFailures.delete(joinAttemptKey(socket));
+}
+
+
 
 function makeDeck() {
   const suits = ["♠", "♥", "♦", "♣"];
@@ -125,7 +245,7 @@ function nextTurn(room) {
 }
 
 function cleanName(name) {
-  return String(name || "").trim().slice(0, 16);
+  return safeText(name, 16);
 }
 
 function generateRandomName(room = null) {
@@ -143,7 +263,7 @@ function cleanAnimal(animal) {
 }
 
 function cleanCode(code) {
-  return String(code || "").replace(/\D/g, "").slice(0, 3);
+  return safeRoomCode(code);
 }
 
 
@@ -539,19 +659,21 @@ function big2CanBeat(play,last){
 
 io.on("connection", socket => {
   socket.on("createRoom", ({ name, animal, gameType = "liar", roundLimit = 20 }, cb) => {
+    if (!allowSocketAction(socket, "createRoom", 3, 10000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     name = cleanName(name);
     animal = cleanAnimal(animal);
     if (!name) name = generateRandomName();
 
     let code;
-    do code = String(Math.floor(100 + Math.random() * 900));
+    do code = String(crypto.randomInt(100, 1000));
     while (rooms.has(code));
 
     gameType = gameType === "big2" ? "big2" : "liar";
     const room = newRoom(code, gameType);
     if (gameType === "liar") {
-      const n = Number.parseInt(roundLimit, 10);
-      room.liarRoundLimit = Number.isInteger(n) ? Math.min(200, Math.max(1, n)) : 20;
+      room.liarRoundLimit = safeInteger(roundLimit, 1, 200, 20);
     }
     room.players.push({ id: socket.id, name, animal, hand: [], wins: 0, losses: 0, points: 0 });
     rooms.set(code, room);
@@ -563,12 +685,24 @@ io.on("connection", socket => {
   });
 
   socket.on("joinRoom", ({ name, code, animal }, cb) => {
+    if (!canAttemptJoin(socket)) {
+      return cb?.({ ok: false, message: "房號嘗試次數過多，請 30 秒後再試" });
+    }
+
+    if (!allowSocketAction(socket, "joinRoom", 6, 10000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     name = cleanName(name);
     animal = cleanAnimal(animal);
     code = cleanCode(code);
     const room = rooms.get(code);
 
-    if (!room) return cb?.({ ok: false, message: "找不到這個房間" });
+    if (!room) {
+      recordJoinFailure(socket);
+      return cb?.({ ok: false, message: "找不到這個房間" });
+    }
+
+    clearJoinFailures(socket);
     if (!name) name = generateRandomName(room);
     if (room.started) return cb?.({ ok: false, message: "遊戲已開始" });
     if (room.players.length >= 4) return cb?.({ ok: false, message: "房間已滿（最多 4 人）" });
@@ -582,6 +716,9 @@ io.on("connection", socket => {
   });
 
   socket.on("sendChat", ({ message }, cb) => {
+    if (!allowSocketAction(socket, "sendChat", 5, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
     if (!room) return cb?.({ ok: false, message: "你目前不在房間內" });
 
@@ -593,7 +730,7 @@ io.on("connection", socket => {
       return cb?.({ ok: false, message: "訊息傳送太快了" });
     }
 
-    message = String(message || "").replace(/\s+/g, " ").trim().slice(0, 120);
+    message = safeText(String(message || "").replace(/\s+/g, " "), 120);
     if (!message) return cb?.({ ok: false, message: "請輸入訊息" });
 
     socket.data.lastChatAt = now;
@@ -624,6 +761,9 @@ io.on("connection", socket => {
   });
 
   socket.on("big2Combos", ({type}, cb) => {
+    if (!allowSocketAction(socket, "big2Combos", 10, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room=rooms.get(socket.data.roomCode), player=room&&getPlayer(room,socket.id);
     if(!room||room.gameType!=="big2"||!player){
       return cb?.({ok:false,message:"房間狀態錯誤"});
@@ -668,6 +808,9 @@ io.on("connection", socket => {
   });
 
   socket.on("big2Play", ({indices,type}, cb) => {
+    if (!allowSocketAction(socket, "big2Play", 8, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room=rooms.get(socket.data.roomCode);
     if(!room||room.gameType!=="big2"||!room.started)return cb?.({ok:false,message:"遊戲尚未開始"});
     const player=getPlayer(room,socket.id);
@@ -718,6 +861,9 @@ io.on("connection", socket => {
   });
 
   socket.on("big2Pass", (_, cb) => {
+    if (!allowSocketAction(socket, "big2Pass", 5, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
 
     if (!room || room.gameType !== "big2" || !room.started) {
@@ -750,6 +896,9 @@ io.on("connection", socket => {
   });
 
   socket.on("startGame", (_, cb) => {
+    if (!allowSocketAction(socket, "startGame", 3, 5000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
     if (!room) return;
     if (room.gameType !== "liar") return cb?.({ ok: false, message: "這不是吹牛房間" });
@@ -775,6 +924,9 @@ io.on("connection", socket => {
   });
 
   socket.on("playCards", ({ indices, claimRank }, cb) => {
+    if (!allowSocketAction(socket, "playCards", 8, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
     if (!room || room.gameType !== "liar" || !room.started) return;
     const player = getPlayer(room, socket.id);
@@ -825,6 +977,9 @@ io.on("connection", socket => {
   });
 
   socket.on("challenge", (_, cb) => {
+    if (!allowSocketAction(socket, "challenge", 5, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
 
     // V5.13：抓吹牛不看回合、不看上家、不看 turnIndex。
@@ -900,6 +1055,9 @@ io.on("connection", socket => {
   });
 
   socket.on("passChallenge", (_, cb) => {
+    if (!allowSocketAction(socket, "passChallenge", 5, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const room = rooms.get(socket.data.roomCode);
     if (!room || !room.started) return;
     const player = getPlayer(room, socket.id);
@@ -926,6 +1084,9 @@ io.on("connection", socket => {
 
 
   socket.on("leaveRoom", (_, cb) => {
+    if (!allowSocketAction(socket, "leaveRoom", 3, 3000)) {
+      return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
+    }
     const code = socket.data.roomCode;
     const room = rooms.get(code);
     if (!room) {
@@ -990,6 +1151,12 @@ io.on("connection", socket => {
   });
 
   socket.on("disconnect", () => {
+    for (const key of securityState.socketActions.keys()) {
+      if (key.startsWith(`${socket.id}:`)) {
+        securityState.socketActions.delete(key);
+      }
+    }
+
     const code = socket.data.roomCode;
     const room = rooms.get(code);
     if (!room) return;
@@ -1011,6 +1178,20 @@ io.on("connection", socket => {
       emitRoom(room);
     }
   });
+});
+
+app.use((req, res) => {
+  res.status(404).send("Not Found");
+});
+
+app.use((err, req, res, next) => {
+  console.error("Server error:", err?.message || err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(500).send("Internal Server Error");
 });
 
 const PORT = process.env.PORT || 3000;
