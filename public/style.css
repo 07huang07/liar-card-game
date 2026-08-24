@@ -1554,3 +1554,139 @@ body { overflow-x: hidden; }
   from{transform:scale(.9) rotate(-7deg)}
   to{transform:scale(1.15) rotate(7deg)}
 }
+
+
+/* ===== V5.22 吹牛：大量手牌橫向滾動 + 操作區固定 ===== */
+
+/* 整個三欄遊戲區不能被中間手牌的內容撐寬 */
+.gameGrid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: 190px minmax(0, 1fr) 220px !important;
+  overflow: hidden;
+}
+
+.centerGame {
+  min-width: 0 !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 手牌永遠維持單列。牌多時只在這裡橫向滑動，不增加頁面寬度/高度。 */
+.hand {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 7px !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  box-sizing: border-box;
+  padding: 12px 6px 10px;
+  margin: 6px 0 8px !important;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  overscroll-behavior-x: contain;
+}
+
+/* 每張牌不能被 flex 壓縮到看不到 */
+.hand .card {
+  flex: 0 0 58px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  min-height: 84px !important;
+}
+
+/* WebKit/Chrome 的橫向滾輪 */
+.hand::-webkit-scrollbar {
+  height: 9px;
+}
+.hand::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.055);
+  border-radius: 999px;
+}
+.hand::-webkit-scrollbar-thumb {
+  background: rgba(255,212,95,.55);
+  border-radius: 999px;
+}
+.hand::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,212,95,.78);
+}
+
+/* 右側「你的操作」永遠留在第三欄，自己可縱向滑動。 */
+.controlPanel {
+  min-width: 0 !important;
+  width: 100%;
+  max-width: 220px;
+  position: relative;
+  z-index: 50;
+  overflow-x: hidden;
+  overflow-y: auto;
+  align-self: stretch;
+  scrollbar-width: thin;
+}
+
+/* 右欄內元件不能因長文字而撐寬整個 grid */
+.controlPanel,
+.controlPanel .miniBox,
+.controlPanel select,
+.controlPanel button,
+.controlPanel input {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* 頂部按鈕不被擠掉 */
+.compactTopbar {
+  min-width: 0;
+}
+.roomBlock {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.topActions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+}
+.lobbyBtn {
+  background: #2f6f5b;
+  color: #fff;
+  border: 1px solid rgba(120,230,190,.32);
+}
+.lobbyBtn:hover {
+  background: #38836b;
+}
+
+/* 較窄桌機：保持右側操作欄，縮小左側欄位而不是把操作欄推走 */
+@media (max-width: 1180px) and (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 160px minmax(0, 1fr) 205px !important;
+    gap: 7px;
+  }
+  .controlPanel {
+    max-width: 205px;
+  }
+  .hand .card {
+    flex-basis: 54px !important;
+    width: 54px !important;
+    min-width: 54px !important;
+  }
+}
+
+/* 手機/很窄的螢幕仍允許正常往下排列，不讓三欄硬擠。 */
+@media (max-width: 800px) {
+  .gameGrid {
+    grid-template-columns: 1fr !important;
+    overflow: visible;
+  }
+  .controlPanel {
+    max-width: none;
+    overflow-y: visible;
+  }
+  .topActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

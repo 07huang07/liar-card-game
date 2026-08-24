@@ -299,6 +299,13 @@ function renderHand(){
 }
 
 
+
+$("lobbyBtn").onclick=()=>{
+  // 直接回網站首頁的遊戲大廳。
+  // 頁面離開時 Socket 會 disconnect，伺服器會同步移除該玩家。
+  window.location.href="/";
+};
+
 $("exitGameBtn").onclick=()=>{
   if(!window.confirm("確定要退出目前遊戲嗎？")) return;
   socket.emit("leaveRoom",{},res=>{
