@@ -2178,3 +2178,235 @@ main {
     max-height: 125px !important;
   }
 }
+
+
+/* =========================================================
+   V5.26 吹牛：
+   1. 自己的玩家框完全留在牌桌內
+   2. 底部整塊區域全部用來顯示手牌
+   3. 手牌多時自動兩排，不再與玩家框重疊
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* 中間欄重新分配高度：牌桌 + 大型手牌區 */
+  .centerGame {
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      205px !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* ===== 藍色區域修正 =====
+     bottom seat 不再掛在牌桌外面，而是完整放進綠色牌桌裡。 */
+  .compactTable .seat-bottom {
+    bottom: 28px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    z-index: 65 !important;
+  }
+
+  /* 玩家框略縮小，避免吃掉太多牌桌空間 */
+  .compactTable .seat-bottom,
+  .compactTable .seat-top,
+  .compactTable .seat-left,
+  .compactTable .seat-right {
+    min-width: 96px !important;
+    padding: 6px 8px !important;
+  }
+
+  .compactTable .seat .avatar {
+    font-size: 29px !important;
+  }
+
+  .compactTable .seat .name {
+    font-size: 12px !important;
+  }
+
+  .compactTable .seat .cards,
+  .compactTable .seat .record {
+    font-size: 10px !important;
+  }
+
+  /* 牌桌本身保留安全邊界，不碰到底部手牌區 */
+  .compactTableScene {
+    padding-bottom: 4px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .compactTable {
+    max-height: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ===== 紅色框區域 =====
+     整個 handDock 都成為手牌顯示區。 */
+  .centerGame > .handDock {
+    grid-row: 3 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 205px !important;
+    min-height: 205px !important;
+    max-height: 205px !important;
+    margin: 0 !important;
+    padding: 8px 12px 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    background: #111 !important;
+    border: 1px solid rgba(255,255,255,.14) !important;
+    border-radius: 14px !important;
+
+    display: grid !important;
+    grid-template-rows: 28px minmax(0,1fr) !important;
+  }
+
+  .centerGame > .handDock .handHeader {
+    height: 28px !important;
+    min-height: 28px !important;
+    margin: 0 !important;
+    padding: 0 2px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* 真正的手牌顯示區使用剩下全部高度 */
+  .centerGame > .handDock .hand {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-content: flex-start !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+
+    gap: var(--dynamic-card-gap, 5px) !important;
+
+    margin: 0 !important;
+    padding: 6px 5px !important;
+    box-sizing: border-box !important;
+
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+
+    scrollbar-width: none !important;
+  }
+
+  .centerGame > .handDock .hand::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* 手牌尺寸完全由 JS 依人數/張數計算 */
+  .centerGame > .handDock .hand .card,
+  .centerGame > .handDock .hand.manyCards .card,
+  .centerGame > .handDock .hand.veryManyCards .card {
+    flex: 0 0 var(--dynamic-card-width, 56px) !important;
+    width: var(--dynamic-card-width, 56px) !important;
+    min-width: var(--dynamic-card-width, 56px) !important;
+    max-width: var(--dynamic-card-width, 56px) !important;
+
+    height: 72px !important;
+    min-height: 72px !important;
+    max-height: 72px !important;
+
+    margin: 0 !important;
+    padding: 3px !important;
+
+    font-size: 13px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 15 張以上通常會分兩排 */
+  .centerGame > .handDock .hand[data-rows="2"] .card {
+    height: 70px !important;
+    min-height: 70px !important;
+    max-height: 70px !important;
+  }
+
+  /* 超大量手牌才使用三排，牌再縮一些 */
+  .centerGame > .handDock .hand[data-rows="3"] .card {
+    height: 48px !important;
+    min-height: 48px !important;
+    max-height: 48px !important;
+    font-size: 11px !important;
+  }
+
+  /* 只有極端牌量才上下滑，正常 2 人局 26 張不需要滾輪 */
+  .centerGame > .handDock .hand.needsVerticalScroll {
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #d1a131 rgba(255,255,255,.08) !important;
+  }
+
+  .centerGame > .handDock .hand.needsVerticalScroll::-webkit-scrollbar {
+    display: block !important;
+    width: 7px !important;
+  }
+
+  .centerGame > .handDock .hand.needsVerticalScroll::-webkit-scrollbar-thumb {
+    background: #d1a131 !important;
+    border-radius: 999px !important;
+  }
+
+  /* 選中牌仍往上浮，但限制幅度，避免撞到玩家框 */
+  .centerGame > .handDock .hand .card.selected {
+    transform: translateY(-3px) !important;
+  }
+}
+
+/* 中型桌機也維持足夠大的手牌區 */
+@media (max-width: 1360px) and (min-width: 801px) {
+  .centerGame {
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      195px !important;
+  }
+
+  .centerGame > .handDock {
+    height: 195px !important;
+    min-height: 195px !important;
+    max-height: 195px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: 24px !important;
+  }
+}
+
+/* 很矮的桌機：玩家框仍不能掉進手牌區 */
+@media (max-height: 760px) and (min-width: 801px) {
+  .centerGame {
+    grid-template-rows:
+      auto
+      minmax(0, 1fr)
+      180px !important;
+  }
+
+  .centerGame > .handDock {
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: 18px !important;
+  }
+
+  .centerGame > .handDock .hand .card,
+  .centerGame > .handDock .hand[data-rows="2"] .card {
+    height: 62px !important;
+    min-height: 62px !important;
+    max-height: 62px !important;
+  }
+}

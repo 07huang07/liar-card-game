@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.25.0",
+  "version": "5.26.0",
   "private": true,
-  "description": "Card Game Hub V5.25：大老二房主控制結算續局，遊戲大廳新增密碼維修通道",
+  "description": "Card Game Hub V5.26：吹牛玩家框上移、底部全區作為手牌區、牌多自動多排顯示",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

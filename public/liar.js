@@ -341,32 +341,51 @@ function renderHand(){
   handEl.classList.toggle("manyCards", hand.length >= 16);
   handEl.classList.toggle("veryManyCards", hand.length >= 22);
 
-  // V5.24：依可用寬度與手牌張數自動縮放。
+  // V5.26：底部整塊都是手牌區。
+  // 手牌多時自動使用兩排，避免玩家資訊框與手牌互相擋住。
   const handDock = handEl.closest(".handDock");
-  const available = Math.max(300, (handDock?.clientWidth || handEl.clientWidth || 900) - 18);
-  const gap = hand.length >= 24 ? 2 : hand.length >= 18 ? 3 : 5;
-  const naturalWidth = hand.length > 0
-    ? Math.floor((available - Math.max(0, hand.length - 1) * gap) / hand.length)
-    : 58;
+  const available = Math.max(
+    300,
+    (handDock?.clientWidth || handEl.clientWidth || 900) - 20
+  );
+
+  let rows = 1;
+  if (hand.length >= 15) rows = 2;
+  if (hand.length >= 31) rows = 3;
+
+  const cardsPerRow = Math.max(1, Math.ceil(hand.length / rows));
+  const gap = hand.length >= 25 ? 3 : hand.length >= 15 ? 4 : 6;
+
+  const naturalWidth = Math.floor(
+    (available - Math.max(0, cardsPerRow - 1) * gap) / cardsPerRow
+  );
 
   const minWidth =
-    hand.length >= 30 ? 22 :
-    hand.length >= 26 ? 25 :
-    hand.length >= 22 ? 28 :
-    hand.length >= 18 ? 32 :
-    hand.length >= 14 ? 38 :
-    50;
+    hand.length >= 31 ? 34 :
+    hand.length >= 25 ? 40 :
+    hand.length >= 15 ? 46 :
+    52;
 
   const maxWidth =
-    hand.length >= 22 ? 40 :
-    hand.length >= 18 ? 44 :
-    hand.length >= 14 ? 50 :
-    58;
+    hand.length >= 25 ? 50 :
+    hand.length >= 15 ? 56 :
+    62;
 
-  const cardWidth = Math.max(minWidth, Math.min(maxWidth, naturalWidth));
+  const cardWidth = Math.max(
+    minWidth,
+    Math.min(maxWidth, naturalWidth)
+  );
+
   handEl.style.setProperty("--dynamic-card-width", `${cardWidth}px`);
   handEl.style.setProperty("--dynamic-card-gap", `${gap}px`);
-  handEl.classList.toggle("needsScroll", naturalWidth < minWidth);
+  handEl.dataset.rows = String(rows);
+
+  // 兩人局通常約 26 張/人，兩排即可完整顯示。
+  // 只有極端情況才允許手牌區本身上下捲動。
+  handEl.classList.toggle(
+    "needsVerticalScroll",
+    rows >= 3 && hand.length > 39
+  );
   $("hand").innerHTML="";
   hand.forEach((card,index)=>{
     const el=document.createElement("button");
