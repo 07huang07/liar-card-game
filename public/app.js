@@ -223,7 +223,7 @@ function renderState(){
     const seat=seats[i]; seat.classList.remove("hidden");
     if(p.isTurn)seat.classList.add("turn");
     if(p.isWinner)seat.classList.add("winner");
-    seat.innerHTML=`<div class="avatar">${escapeHtml(p.animal||"🐶")}</div><div class="name">${escapeHtml(p.name)}${p.id===socket.id?"（你）":""}</div><div class="cards">${p.cardCount} 張牌</div><div class="record">勝 ${p.wins||0} ｜ 敗 ${p.losses||0}</div>`;
+    seat.innerHTML=`<div class="avatar">${escapeHtml(p.animal||"🐶")}</div><div class="name">${escapeHtml(p.name)}${p.id===socket.id?"（你）":""}</div><div class="record">勝 ${p.wins||0} ｜ 敗 ${p.losses||0}</div><div class="cardCountBadge" aria-label="剩餘牌數">${p.cardCount}</div>`;
   });
 
   const myTurn=!!me?.isTurn;

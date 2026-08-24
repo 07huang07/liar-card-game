@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.33.0",
+  "version": "5.34.0",
   "private": true,
-  "description": "Card Game Hub V5.33：吹牛牌桌上移並增加與手牌區安全距離",
+  "description": "Card Game Hub V5.34：吹牛上下玩家框拉開，剩餘牌數改為獨立徽章",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

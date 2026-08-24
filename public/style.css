@@ -3997,3 +3997,114 @@ main {
     max-height: 220px !important;
   }
 }
+
+
+/* =========================================================
+   V5.34 吹牛
+   - 上下玩家框往外拉開，避免遮中央牌組
+   - 剩餘牌數改成玩家框旁邊獨立小框
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* 只移動上下兩個玩家框，其他牌桌元素不變 */
+  .compactTable .seat-top {
+    top: -14px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: -14px !important;
+  }
+
+  /* 玩家框內不再顯示原本的 cards 行 */
+  .compactTable .seat .cards {
+    display: none !important;
+  }
+
+  /* 獨立剩餘牌數小框 */
+  .compactTable .seat .cardCountBadge {
+    position: absolute !important;
+    z-index: 90 !important;
+
+    min-width: 34px !important;
+    height: 28px !important;
+    padding: 0 7px !important;
+    box-sizing: border-box !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border: 2px solid #d0a92e !important;
+    border-radius: 10px !important;
+    background: #151515 !important;
+    color: #ffd55a !important;
+
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,.35) !important;
+    pointer-events: none !important;
+  }
+
+  /* 上下玩家：牌數框放右側 */
+  .compactTable .seat-top .cardCountBadge,
+  .compactTable .seat-bottom .cardCountBadge {
+    right: -44px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 左玩家：牌數框放右側 */
+  .compactTable .seat-left .cardCountBadge {
+    right: -44px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  /* 右玩家：牌數框放左側，避免超出牌桌 */
+  .compactTable .seat-right .cardCountBadge {
+    left: -44px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+}
+
+/* 中型螢幕稍微收回一點，仍保持比 V5.33 更大的上下間距 */
+@media (max-width: 1360px) and (min-width: 801px) {
+  .compactTable .seat-top {
+    top: -10px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: -10px !important;
+  }
+
+  .compactTable .seat .cardCountBadge {
+    min-width: 32px !important;
+    height: 26px !important;
+    font-size: 11px !important;
+  }
+
+  .compactTable .seat-top .cardCountBadge,
+  .compactTable .seat-bottom .cardCountBadge,
+  .compactTable .seat-left .cardCountBadge {
+    right: -40px !important;
+  }
+
+  .compactTable .seat-right .cardCountBadge {
+    left: -40px !important;
+  }
+}
+
+/* 低高度桌機，仍往外拉，但避免太靠畫面邊緣 */
+@media (max-height: 780px) and (min-width: 801px) {
+  .compactTable .seat-top {
+    top: -8px !important;
+  }
+
+  .compactTable .seat-bottom {
+    bottom: -8px !important;
+  }
+}
