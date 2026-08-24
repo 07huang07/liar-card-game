@@ -327,6 +327,10 @@ function renderState(){
 
 function renderHand(){
   $("handCount").textContent=`（${hand.length} 張）`;
+  const handEl = $("hand");
+  handEl.dataset.count = String(hand.length);
+  handEl.classList.toggle("manyCards", hand.length >= 16);
+  handEl.classList.toggle("veryManyCards", hand.length >= 22);
   $("hand").innerHTML="";
   hand.forEach((card,index)=>{
     const el=document.createElement("button");

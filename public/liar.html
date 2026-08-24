@@ -104,6 +104,14 @@
             </div>
           </div>
 
+        
+          <section class="handDock">
+        <div class="handHeader">
+          <strong>你的手牌 <span id="handCount"></span></strong>
+          <span class="muted">點牌後按「出牌」</span>
+        </div>
+        <div id="hand" class="hand compactHand"></div>
+      </section>
         </section>
 
         <aside class="controlPanel">
@@ -146,14 +154,6 @@
           </div>
         </aside>
       </div>
-
-      <section class="handDock">
-        <div class="handHeader">
-          <strong>你的手牌 <span id="handCount"></span></strong>
-          <span class="muted">點牌後按「出牌」</span>
-        </div>
-        <div id="hand" class="hand compactHand"></div>
-      </section>
     </section>
   </main>
 
@@ -184,7 +184,7 @@
   <div class="developerCredit">POWER by hhhyyy</div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/liar.js?v=5.22"></script>
+  <script src="/liar.js?v=5.23"></script>
 
   <div id="autoDiscardOverlay" class="autoDiscardOverlay hidden" aria-live="polite">
     <div class="autoDiscardPanel">

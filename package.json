@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.22.0",
+  "version": "5.23.0",
   "private": true,
-  "description": "Card Game Hub V5.22：吹牛大量手牌橫向滾動、操作區固定、右上返回大廳",
+  "description": "Card Game Hub V5.23：吹牛手牌區重構、牌多自動縮小與橫向滾動、操作欄固定",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

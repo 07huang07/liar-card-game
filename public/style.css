@@ -1690,3 +1690,303 @@ body { overflow-x: hidden; }
     justify-content: flex-end;
   }
 }
+
+
+/* =========================================================
+   V5.23 吹牛版面重構
+   根本修正：手牌放進 centerGame，不再跨越三欄把操作區推走。
+   ========================================================= */
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+main {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.compactGame {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  display: grid !important;
+  grid-template-rows: 54px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+  box-sizing: border-box;
+}
+
+.gameGrid {
+  display: grid !important;
+  grid-template-columns: 190px minmax(0, 1fr) 230px !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 左右欄永遠不能被中間內容推走 */
+.sidePanel {
+  grid-column: 1 !important;
+  min-width: 0 !important;
+  width: 190px !important;
+  max-width: 190px !important;
+  overflow: hidden !important;
+}
+
+.controlPanel {
+  grid-column: 3 !important;
+  min-width: 230px !important;
+  width: 230px !important;
+  max-width: 230px !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  right: auto !important;
+  z-index: 80 !important;
+  align-self: stretch !important;
+}
+
+/* 中間遊戲區只能使用剩餘空間 */
+.centerGame {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) 142px !important;
+  gap: 5px !important;
+  align-items: stretch !important;
+}
+
+/* 牌桌本身不得用 vw 撐破中間欄 */
+.compactTableScene {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.compactTable {
+  width: min(100%, 760px) !important;
+  max-width: calc(100% - 18px) !important;
+  height: min(38vw, 390px) !important;
+  min-height: 250px !important;
+  box-sizing: border-box !important;
+}
+
+/* 手牌 Dock 現在只存在於 centerGame 第三列 */
+.centerGame > .handDock {
+  grid-row: 3 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 142px !important;
+  min-height: 142px !important;
+  margin: 0 !important;
+  padding: 8px 10px 5px !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  background: rgba(18,18,18,.96);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+}
+
+.centerGame > .handDock .handHeader {
+  height: 24px;
+  margin: 0 0 4px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+/* 手牌：雙重策略 = 自動縮小 + 橫向捲動 */
+.centerGame > .handDock .hand {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  gap: 6px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: 102px !important;
+  margin: 0 !important;
+  padding: 5px 5px 11px !important;
+  box-sizing: border-box !important;
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  white-space: nowrap !important;
+  scrollbar-width: auto !important;
+  scrollbar-color: #d6a936 rgba(255,255,255,.08);
+  scrollbar-gutter: stable both-edges;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+}
+
+/* 預設牌 */
+.centerGame > .handDock .hand .card {
+  flex: 0 0 54px !important;
+  width: 54px !important;
+  min-width: 54px !important;
+  max-width: 54px !important;
+  height: 82px !important;
+  min-height: 82px !important;
+  padding: 4px !important;
+  font-size: 16px !important;
+  box-sizing: border-box !important;
+}
+
+/* 16 張以上自動縮小 */
+.centerGame > .handDock .hand.manyCards .card {
+  flex-basis: 46px !important;
+  width: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  height: 78px !important;
+  min-height: 78px !important;
+  font-size: 14px !important;
+  gap: 4px !important;
+}
+
+/* 22 張以上再縮一級；仍保留橫向捲軸 */
+.centerGame > .handDock .hand.veryManyCards .card {
+  flex-basis: 40px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 74px !important;
+  min-height: 74px !important;
+  font-size: 13px !important;
+}
+
+.centerGame > .handDock .hand::-webkit-scrollbar {
+  display: block !important;
+  height: 11px !important;
+}
+.centerGame > .handDock .hand::-webkit-scrollbar-track {
+  background: rgba(255,255,255,.08) !important;
+  border-radius: 999px !important;
+}
+.centerGame > .handDock .hand::-webkit-scrollbar-thumb {
+  background: #c99b2e !important;
+  border-radius: 999px !important;
+  border: 2px solid rgba(0,0,0,.25);
+}
+.centerGame > .handDock .hand::-webkit-scrollbar-thumb:hover {
+  background: #e1b43d !important;
+}
+
+/* 右側操作框內部也不能自己撐寬 */
+.controlPanel .miniBox,
+.controlPanel .rankPicker,
+.controlPanel .actionButtons,
+.controlPanel .challengeInline {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.controlPanel .rankPicker {
+  grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+}
+
+.controlPanel button,
+.controlPanel input,
+.controlPanel select {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 1500px 以下微縮左右欄，仍然強制保留操作欄 */
+@media (max-width: 1500px) and (min-width: 901px) {
+  .gameGrid {
+    grid-template-columns: 165px minmax(0,1fr) 210px !important;
+    gap: 7px !important;
+  }
+  .sidePanel {
+    width: 165px !important;
+    max-width: 165px !important;
+  }
+  .controlPanel {
+    width: 210px !important;
+    min-width: 210px !important;
+    max-width: 210px !important;
+  }
+}
+
+/* 1100px 以下再縮，但右側仍不消失 */
+@media (max-width: 1100px) and (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 145px minmax(0,1fr) 195px !important;
+    gap: 6px !important;
+  }
+  .sidePanel {
+    width: 145px !important;
+    max-width: 145px !important;
+  }
+  .controlPanel {
+    width: 195px !important;
+    min-width: 195px !important;
+    max-width: 195px !important;
+  }
+  .compactTable {
+    max-width: calc(100% - 8px) !important;
+  }
+}
+
+/* 手機版才改成單欄 */
+@media (max-width: 800px) {
+  html, body {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  .compactGame {
+    height: auto !important;
+    max-height: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  .gameGrid {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+  }
+  .centerGame,
+  .sidePanel,
+  .controlPanel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  .centerGame {
+    order: 1;
+    min-height: 600px !important;
+  }
+  .sidePanel {
+    order: 2;
+  }
+  .controlPanel {
+    order: 3;
+    overflow-y: visible !important;
+  }
+  .centerGame > .handDock {
+    height: 142px !important;
+  }
+}
