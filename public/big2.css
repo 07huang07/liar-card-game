@@ -831,3 +831,54 @@ body{background:#1b1009;color:#fff}
 .settlementScoreRow{
   grid-template-columns:minmax(120px,1fr) minmax(160px,1.5fr) minmax(120px,auto) !important;
 }
+
+
+/* =========================================================
+   V5.36 大老二：玩家剩餘牌數獨立小框
+   其餘版面與功能維持 V5.35
+   ========================================================= */
+
+.b2Seat {
+  overflow: visible !important;
+}
+
+.b2CardCountBadge {
+  position: absolute !important;
+  z-index: 50 !important;
+  min-width: 34px !important;
+  height: 28px !important;
+  padding: 0 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #111 !important;
+  color: #ffd75b !important;
+  border: 2px solid #ffd75b !important;
+  border-radius: 9px !important;
+  box-sizing: border-box !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.45) !important;
+  pointer-events: none !important;
+}
+
+/* 上、下、左玩家：小框顯示在玩家框右側 */
+.b2Seat.top .b2CardCountBadge,
+.b2Seat.bottom .b2CardCountBadge,
+.b2Seat.left .b2CardCountBadge {
+  right: -42px !important;
+  left: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+/* 右側玩家：小框顯示在玩家框左側 */
+.b2Seat.right .b2CardCountBadge {
+  left: -42px !important;
+  right: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+}

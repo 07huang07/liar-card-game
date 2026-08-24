@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.35",
+    version: "V5.36",
     date: "2026/08/24",
-    content: "修正吹牛玩家框旁的剩餘牌數小框未顯示問題；牌桌、牌組、玩家框位置與手牌區維持不變。"
+    content: "大老二新增玩家框旁的獨立剩餘牌數小框；其餘遊戲畫面與功能維持不變。"
   }
 ];
 

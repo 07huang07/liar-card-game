@@ -138,7 +138,7 @@ function renderSeats(){
   const pos=["top","left","right","bottom"];
   a.forEach(([i,p])=>{
     const s=seats[i]; s.className=`b2Seat ${pos[i]} ${p.isTurn?"turn":""}`;
-    s.innerHTML=`<div class="avatar">${esc(p.animal)}</div><div class="name">${esc(p.name)}${p.id===socket.id?"（你）":""}</div><div class="count">${p.cardCount} 張牌</div><div class="record">積分 ${p.points||0}｜勝 ${p.wins||0}</div>`;
+    s.innerHTML=`<div class="avatar">${esc(p.animal)}</div><div class="name">${esc(p.name)}${p.id===socket.id?"（你）":""}</div><div class="record">積分 ${p.points||0}｜勝 ${p.wins||0}</div><div class="b2CardCountBadge" aria-label="剩餘牌數">${p.cardCount}</div>`;
   });
 }
 function renderStack(){
