@@ -2,7 +2,7 @@
   "name": "liar-card-game",
   "version": "5.37.0",
   "private": true,
-  "description": "Card Game Hub V5.40：吹牛排行榜加寬",
+  "description": "Card Game Hub V5.41：更新大老二順子規則",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

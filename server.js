@@ -501,38 +501,53 @@ function big2FindCombos(hand,type){
   if(type==="straight"){
     const indexed=hand.map((c,i)=>({c,i}));
     for(const five of comb(indexed,5)){
-      const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
-      const unique=new Set(vals).size===5;
-      if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)) {
-        out.push(five.map(x=>x.i));
-      }
+      if(big2StraightInfo(five.map(x=>x.c))) out.push(five.map(x=>x.i));
     }
   }
   if(type==="straightflush"){
     for(const suit of Object.keys(BIG2_SUIT)){
       const suited=hand.map((c,i)=>({c,i})).filter(x=>x.c.suit===suit);
       for(const five of comb(suited,5)){
-        const vals=five.map(x=>BIG2_RANK[x.c.rank]).sort((a,b)=>a-b);
-        const unique=new Set(vals).size===5;
-        if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)) out.push(five.map(x=>x.i));
+        if(big2StraightInfo(five.map(x=>x.c))) out.push(five.map(x=>x.i));
       }
     }
   }
   return out;
 }
+
+// 大老二順子規則：2 只能接在 A 後面，不能與 3 相連。
+// 合法順子依序為 34567 ... 10JQKA、JQKA2；JQKA2 最大。
+function big2StraightInfo(cards){
+  if(cards.length!==5) return null;
+  const ranks=[...new Set(cards.map(c=>c.rank))];
+  if(ranks.length!==5) return null;
+
+  const normal=["3","4","5","6","7","8","9","10","J","Q","K","A"];
+  const key=new Set(ranks);
+  for(let start=0; start<=normal.length-5; start++){
+    const seq=normal.slice(start,start+5);
+    if(seq.every(r=>key.has(r))){
+      const highRank=seq[4];
+      const highSuit=Math.max(...cards.filter(c=>c.rank===highRank).map(c=>BIG2_SUIT[c.suit]));
+      return {order:start, highRank, highSuit};
+    }
+  }
+
+  const top=["J","Q","K","A","2"];
+  if(top.every(r=>key.has(r))){
+    const highSuit=Math.max(...cards.filter(c=>c.rank==="2").map(c=>BIG2_SUIT[c.suit]));
+    return {order:8, highRank:"2", highSuit};
+  }
+  return null;
+}
+
 function big2Classify(cards,type){
   cards=big2Sort(cards);
   if(type==="single"&&cards.length===1)return {ok:true,type,score:big2CardValue(cards[0])};
   if(type==="pair"&&cards.length===2&&cards[0].rank===cards[1].rank)return {ok:true,type,score:Math.max(...cards.map(big2CardValue))};
   if(type==="straight"&&cards.length===5){
-    const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
-    const unique=new Set(vals).size===5;
-    if(unique && vals.every((v,i)=>i===0||v===vals[i-1]+1)){
-      const highestRank=vals.at(-1);
-      const highCards=cards.filter(c=>BIG2_RANK[c.rank]===highestRank);
-      const highSuit=Math.max(...highCards.map(c=>BIG2_SUIT[c.suit]));
-      return {ok:true,type,score:highestRank*4+highSuit};
-    }
+    const info=big2StraightInfo(cards);
+    if(info) return {ok:true,type,score:info.order*4+info.highSuit};
   }
   if(type==="fullhouse"&&cards.length===5){
     const counts=[...big2Groups(cards).values()].map(g=>g.length).sort().join(",");
@@ -547,9 +562,8 @@ function big2Classify(cards,type){
   }
   if(type==="straightflush"&&cards.length===5){
     const same=cards.every(c=>c.suit===cards[0].suit);
-    const vals=cards.map(c=>BIG2_RANK[c.rank]).sort((a,b)=>a-b);
-    const unique=new Set(vals).size===5;
-    if(same&&unique&&vals.every((v,i)=>i===0||v===vals[i-1]+1))return {ok:true,type,score:vals.at(-1)*4+BIG2_SUIT[cards[0].suit]};
+    const info=big2StraightInfo(cards);
+    if(same&&info) return {ok:true,type,score:info.order*4+BIG2_SUIT[cards[0].suit]};
   }
   return {ok:false};
 }
@@ -666,9 +680,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.40",
+    version: "V5.41",
     date: "2026/08/24",
-    content: "吹牛排行榜加寬，玩家名稱至少可完整顯示三個中文字；其餘功能不變。"
+    content: "更新大老二順子規則：2 不可與 3 相連；JQKA2 為最大順，其次 10JQKA，34567 為最小順。"
   }
 ];
 
