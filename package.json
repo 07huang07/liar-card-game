@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.29.0",
+  "version": "5.30.0",
   "private": true,
-  "description": "Card Game Hub V5.29：依參考圖重構吹牛牌桌、玩家框與加長手牌區",
+  "description": "Card Game Hub V5.30：吹牛牌桌縮小、玩家資訊框縮小、手牌區完整保留",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
