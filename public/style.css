@@ -4191,3 +4191,43 @@ main {
     transform: translateY(-50%) !important;
   }
 }
+
+
+/* =========================================================
+   V5.37 — 吹牛起始頁精簡化
+   僅調整建立/加入房間起始頁，遊戲畫面與玩法不變
+   ========================================================= */
+#landing.liarLandingCompact{
+  width:min(520px,90vw) !important;
+  max-width:520px !important;
+  margin:30px auto !important;
+  padding:28px !important;
+  border:1px solid #48413c !important;
+  border-radius:22px !important;
+  background:#101010 !important;
+  color:#f7f3ed !important;
+  box-shadow:0 20px 60px #0008 !important;
+}
+.liarLandingCompact .liarBackHub{color:#bbb;text-decoration:none;display:inline-block;margin-bottom:4px}
+.liarLandingCompact h1{text-align:center;font-size:34px;margin:10px 0}
+.liarLandingCompact .liarLandingSub{text-align:center;color:#aaa;margin:0 0 18px}
+.liarLandingCompact label{margin:10px 0 6px;color:#f7f3ed}
+.liarLandingCompact>input{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;margin:0 0 4px}
+.liarLandingCompact .liarCompactHint{font-size:12px;color:#888;margin:0 0 10px}
+.liarLandingCompact .liarCompactAnimals{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;margin:8px 0 12px}
+.liarLandingCompact .liarCompactAnimals .animal{padding:8px 2px;font-size:20px;min-width:0;border-radius:9px;background:#242424;color:#fff;border:1px solid #444;display:block}
+.liarLandingCompact .liarCompactAnimals .animal.active{outline:2px solid #f5bd36;border-color:#444;background:#242424}
+.liarLandingCompact .liarRoundCompact{display:grid;grid-template-columns:auto 90px 1fr;align-items:center;gap:8px;margin:4px 0 12px}
+.liarLandingCompact .liarRoundCompact label{margin:0;white-space:nowrap}
+.liarLandingCompact .liarRoundCompact input{width:90px;margin:0;padding:9px 10px;border-radius:9px}
+.liarLandingCompact .liarRoundCompact span{font-size:12px;color:#888}
+.liarLandingCompact .liarLandingActions{display:grid;gap:9px;margin-top:6px}
+.liarLandingCompact .liarLandingActions>button{width:100%;padding:13px;border-radius:11px;background:#3158a8;color:#fff;font-weight:900;border:0;margin:0}
+.liarLandingCompact .liarJoinRow{display:grid;grid-template-columns:1fr 100px;gap:7px}
+.liarLandingCompact .liarJoinRow input{width:100%;margin:0;padding:12px;border-radius:10px}
+.liarLandingCompact .liarJoinRow button{border:0;border-radius:10px;background:#278353;color:#fff;font-weight:900;padding:12px}
+.liarLandingCompact #landingMsg{margin:6px 0 0;min-height:0}
+@media(max-width:560px){
+  #landing.liarLandingCompact{padding:22px 18px !important}
+  .liarLandingCompact .liarCompactAnimals{grid-template-columns:repeat(4,1fr)}
+}

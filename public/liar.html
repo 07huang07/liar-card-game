@@ -8,38 +8,39 @@
 </head>
 <body>
   <main class="wrap">
-    <section id="landing" class="panel landing">
-      <div class="logo">🃏</div>
-      <h1>動物吹牛撲克牌</h1>
-      <p class="muted">同一輪只能宣稱同一個點數，直到有人抓吹牛。</p>
+    <section id="landing" class="panel landing liarLandingCompact">
+      <a class="liarBackHub" href="/">← 回遊戲大廳</a>
+      <h1>🃏 吹牛</h1>
+      <p class="liarLandingSub">最多 4 人，即時多人房間</p>
 
-      <label>你的暱稱</label>
-      <input id="name" maxlength="16" placeholder="可留空，系統會自動產生暱稱">
-      <div id="nameHint" class="nameHint">未輸入時會自動使用「玩家＋數字」暱稱</div>
+      <label>暱稱</label>
+      <input id="name" maxlength="16" placeholder="可留空，系統會自動產生">
+      <div id="nameHint" class="nameHint liarCompactHint">未輸入時會自動使用「玩家＋數字」暱稱</div>
 
-      <label>選擇你的動物</label>
-      <div class="animalPicker">
-        <button class="animal active" data-animal="🐶">🐶<span>狗狗</span></button>
-        <button class="animal" data-animal="🐱">🐱<span>貓咪</span></button>
-        <button class="animal" data-animal="🐰">🐰<span>兔子</span></button>
-        <button class="animal" data-animal="🦊">🦊<span>狐狸</span></button>
-        <button class="animal" data-animal="🐼">🐼<span>熊貓</span></button>
-        <button class="animal" data-animal="🐯">🐯<span>老虎</span></button>
-        <button class="animal" data-animal="🐸">🐸<span>青蛙</span></button>
-        <button class="animal" data-animal="🐵">🐵<span>猴子</span></button>
+      <div class="animalPicker liarCompactAnimals">
+        <button class="animal active" data-animal="🐶">🐶</button>
+        <button class="animal" data-animal="🐱">🐱</button>
+        <button class="animal" data-animal="🐰">🐰</button>
+        <button class="animal" data-animal="🦊">🦊</button>
+        <button class="animal" data-animal="🐼">🐼</button>
+        <button class="animal" data-animal="🐯">🐯</button>
+        <button class="animal" data-animal="🐸">🐸</button>
+        <button class="animal" data-animal="🐵">🐵</button>
       </div>
 
-      <label for="roundLimitInput">設定回合數</label>
-      <div class="roundLimitRow">
+      <div class="liarRoundCompact">
+        <label for="roundLimitInput">回合數</label>
         <input id="roundLimitInput" type="number" min="1" max="200" value="20" inputmode="numeric">
-        <span>回合</span>
+        <span>1～200</span>
       </div>
-      <div class="nameHint">房主可設定 1～200 回合</div>
-      <button id="createBtn">建立房間</button>
-      <div class="divider">或</div>
-      <label>房間代碼</label>
-      <input id="roomCodeInput" maxlength="3" inputmode="numeric" pattern="[0-9]*" placeholder="例如：782">
-      <button id="joinBtn" class="secondary">加入房間</button>
+
+      <div class="liarLandingActions">
+        <button id="createBtn">建立吹牛房間</button>
+        <div class="liarJoinRow">
+          <input id="roomCodeInput" maxlength="3" inputmode="numeric" pattern="[0-9]*" placeholder="三位房號">
+          <button id="joinBtn">加入</button>
+        </div>
+      </div>
       <p id="landingMsg" class="msg"></p>
     </section>
 
@@ -184,7 +185,7 @@
   <div class="developerCredit">POWER by hhhyyy</div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/liar.js?v=5.35"></script>
+  <script src="/liar.js?v=5.37"></script>
 
   <div id="autoDiscardOverlay" class="autoDiscardOverlay hidden" aria-live="polite">
     <div class="autoDiscardPanel">

@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.36",
+    version: "V5.37",
     date: "2026/08/24",
-    content: "大老二新增玩家框旁的獨立剩餘牌數小框；其餘遊戲畫面與功能維持不變。"
+    content: "吹牛建立／加入房間起始頁改為與大老二一致的精簡版面；遊戲畫面、規則與其他功能皆不變。"
   }
 ];
 

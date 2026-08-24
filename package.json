@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.36.0",
+  "version": "5.37.0",
   "private": true,
-  "description": "Card Game Hub V5.36：大老二新增剩餘牌數獨立小框",
+  "description": "Card Game Hub V5.37：吹牛起始頁精簡化",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
