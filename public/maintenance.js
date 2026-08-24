@@ -68,7 +68,7 @@ maintenanceEls.button?.addEventListener("click", () => {
   maintenanceEls.modal?.classList.remove("hidden");
   maintenanceEls.message.textContent = "";
 
-  if (!maintenanceEls.version.value) maintenanceEls.version.value = "V5.39";
+  if (!maintenanceEls.version.value) maintenanceEls.version.value = "V5.40";
   if (!maintenanceEls.date.value) maintenanceEls.date.value = todayText();
 
   maintenanceEls.password.focus();

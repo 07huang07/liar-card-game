@@ -666,9 +666,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.39",
+    version: "V5.40",
     date: "2026/08/24",
-    content: "吹牛左側介面精簡：排行榜移除動物頭像，聊天室只顯示玩家名稱、不顯示時間；其餘功能不變。"
+    content: "吹牛排行榜加寬，玩家名稱至少可完整顯示三個中文字；其餘功能不變。"
   }
 ];
 

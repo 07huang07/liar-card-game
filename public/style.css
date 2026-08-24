@@ -4231,3 +4231,28 @@ main {
   #landing.liarLandingCompact{padding:22px 18px !important}
   .liarLandingCompact .liarCompactAnimals{grid-template-columns:repeat(4,1fr)}
 }
+
+/* =========================================================
+   V5.40 — 吹牛排行榜加寬
+   僅增加左側排行榜/聊天欄寬度，確保玩家名稱至少可顯示三個中文字。
+   ========================================================= */
+@media (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 165px minmax(0, 1fr) 210px !important;
+  }
+  .sidePanel {
+    width: 165px !important;
+    max-width: 165px !important;
+    min-width: 165px !important;
+  }
+  .leaderRow {
+    grid-template-columns: 24px minmax(54px, 1fr) auto auto !important;
+    column-gap: 4px !important;
+  }
+  .leaderName {
+    min-width: 54px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
