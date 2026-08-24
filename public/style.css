@@ -1990,3 +1990,191 @@ main {
     height: 142px !important;
   }
 }
+
+
+/* =========================================================
+   V5.24 — 吹牛建立頁/遊戲頁分離、聊天室縮小、手牌自動縮放
+   ========================================================= */
+
+/* 最高優先權：只要 game 有 hidden，就絕對不能顯示。
+   這是修正建立房間頁下方露出遊戲畫面的核心。 */
+#game.hidden {
+  display: none !important;
+}
+#landing.hidden {
+  display: none !important;
+}
+
+/* 遊戲模式才顯示遊戲區 */
+#game:not(.hidden) {
+  display: grid !important;
+}
+
+/* 桌機：縮小左欄，將寬度讓給中央手牌 */
+@media (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 135px minmax(0, 1fr) 210px !important;
+    gap: 6px !important;
+  }
+
+  .sidePanel {
+    width: 135px !important;
+    max-width: 135px !important;
+    min-width: 135px !important;
+  }
+
+  .controlPanel {
+    width: 210px !important;
+    max-width: 210px !important;
+    min-width: 210px !important;
+  }
+
+  .sidePanel .miniBox {
+    padding: 8px !important;
+  }
+
+  /* 排行榜略縮小 */
+  .leaderboardBox {
+    min-height: 0 !important;
+  }
+
+  /* 聊天室整體縮小 */
+  .chatBox {
+    min-height: 0 !important;
+    padding: 8px !important;
+  }
+
+  .chatMessages {
+    height: 165px !important;
+    min-height: 120px !important;
+    max-height: 165px !important;
+    overflow-y: auto !important;
+    padding: 5px !important;
+    font-size: 11px !important;
+  }
+
+  .chatComposer {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) 42px !important;
+    gap: 4px !important;
+    margin-top: 5px !important;
+  }
+
+  .chatComposer input {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 6px 7px !important;
+    font-size: 11px !important;
+  }
+
+  .chatComposer button {
+    width: 42px !important;
+    min-width: 42px !important;
+    padding: 6px 3px !important;
+    font-size: 11px !important;
+  }
+
+  /* 手牌：先努力全部縮進同一排，不預設使用滾輪 */
+  .centerGame > .handDock .hand {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: var(--dynamic-card-gap, 5px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  .centerGame > .handDock .hand::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .centerGame > .handDock .hand .card,
+  .centerGame > .handDock .hand.manyCards .card,
+  .centerGame > .handDock .hand.veryManyCards .card {
+    flex: 0 0 var(--dynamic-card-width,54px) !important;
+    width: var(--dynamic-card-width,54px) !important;
+    min-width: var(--dynamic-card-width,54px) !important;
+    max-width: var(--dynamic-card-width,54px) !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  /* 牌越多，高度/字體同步縮小 */
+  .centerGame > .handDock .hand.manyCards .card {
+    height: 74px !important;
+    min-height: 74px !important;
+    font-size: 13px !important;
+  }
+
+  .centerGame > .handDock .hand.veryManyCards .card {
+    height: 68px !important;
+    min-height: 68px !important;
+    font-size: 11px !important;
+  }
+
+  /* 只有真的算不下時，才顯示橫向滾輪 */
+  .centerGame > .handDock .hand.needsScroll {
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #d6a936 rgba(255,255,255,.08) !important;
+  }
+
+  .centerGame > .handDock .hand.needsScroll::-webkit-scrollbar {
+    display: block !important;
+    height: 7px !important;
+  }
+
+  .centerGame > .handDock .hand.needsScroll::-webkit-scrollbar-thumb {
+    background: #d0a32f !important;
+    border-radius: 999px !important;
+  }
+}
+
+/* 1360 以下繼續縮左側，而不是犧牲中央手牌 */
+@media (max-width: 1360px) and (min-width: 901px) {
+  .gameGrid {
+    grid-template-columns: 120px minmax(0,1fr) 200px !important;
+    gap: 5px !important;
+  }
+  .sidePanel {
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+  .controlPanel {
+    width: 200px !important;
+    min-width: 200px !important;
+    max-width: 200px !important;
+  }
+  .chatMessages {
+    height: 145px !important;
+    max-height: 145px !important;
+  }
+}
+
+/* 1100 以下再縮，但操作欄仍保留 */
+@media (max-width: 1100px) and (min-width: 801px) {
+  .gameGrid {
+    grid-template-columns: 108px minmax(0,1fr) 185px !important;
+    gap: 4px !important;
+  }
+  .sidePanel {
+    width: 108px !important;
+    min-width: 108px !important;
+    max-width: 108px !important;
+  }
+  .controlPanel {
+    width: 185px !important;
+    min-width: 185px !important;
+    max-width: 185px !important;
+  }
+  .chatMessages {
+    height: 125px !important;
+    max-height: 125px !important;
+  }
+}

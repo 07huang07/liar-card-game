@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.23.0",
+  "version": "5.24.0",
   "private": true,
-  "description": "Card Game Hub V5.23：吹牛手牌區重構、牌多自動縮小與橫向滾動、操作欄固定",
+  "description": "Card Game Hub V5.24：吹牛建立頁與遊戲頁分離、聊天室縮小、手牌依張數自動縮放",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -36,6 +36,15 @@ document.querySelectorAll(".animal").forEach(btn=>{
 
 function nameValue(){return $("name").value.trim();}
 function showGame(code){$("landing").classList.add("hidden");$("game").classList.remove("hidden");$("roomCode").textContent=code;}
+
+function forceLandingViewOnLoad(){
+  const landing = $("landing");
+  const game = $("game");
+  if (landing) landing.classList.remove("hidden");
+  if (game) game.classList.add("hidden");
+}
+forceLandingViewOnLoad();
+
 function setMsg(t){$("gameMsg").textContent=t||"";}
 
 $("roomCodeInput").addEventListener("input", () => {
@@ -290,6 +299,33 @@ function renderHand(){
   handEl.dataset.count = String(hand.length);
   handEl.classList.toggle("manyCards", hand.length >= 16);
   handEl.classList.toggle("veryManyCards", hand.length >= 22);
+
+  // V5.24：依可用寬度與手牌張數自動縮放。
+  const handDock = handEl.closest(".handDock");
+  const available = Math.max(300, (handDock?.clientWidth || handEl.clientWidth || 900) - 18);
+  const gap = hand.length >= 24 ? 2 : hand.length >= 18 ? 3 : 5;
+  const naturalWidth = hand.length > 0
+    ? Math.floor((available - Math.max(0, hand.length - 1) * gap) / hand.length)
+    : 58;
+
+  const minWidth =
+    hand.length >= 30 ? 22 :
+    hand.length >= 26 ? 25 :
+    hand.length >= 22 ? 28 :
+    hand.length >= 18 ? 32 :
+    hand.length >= 14 ? 38 :
+    50;
+
+  const maxWidth =
+    hand.length >= 22 ? 40 :
+    hand.length >= 18 ? 44 :
+    hand.length >= 14 ? 50 :
+    58;
+
+  const cardWidth = Math.max(minWidth, Math.min(maxWidth, naturalWidth));
+  handEl.style.setProperty("--dynamic-card-width", `${cardWidth}px`);
+  handEl.style.setProperty("--dynamic-card-gap", `${gap}px`);
+  handEl.classList.toggle("needsScroll", naturalWidth < minWidth);
   $("hand").innerHTML="";
   hand.forEach((card,index)=>{
     const el=document.createElement("button");
@@ -343,3 +379,11 @@ socket.on("sessionEnded", () => {
 function escapeHtml(s){
   return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
+
+let handResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(handResizeTimer);
+  handResizeTimer = setTimeout(() => {
+    if (Array.isArray(hand)) renderHand();
+  }, 100);
+});
