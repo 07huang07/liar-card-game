@@ -139,18 +139,21 @@ function makeDeck() {
   const suits = ["♠", "♥", "♦", "♣"];
   const ranks = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   const deck = [];
+
   for (const suit of suits) {
-    for (const rank of ranks) deck.push({ suit, rank });
+    for (const rank of ranks) {
+      deck.push({ suit, rank });
+    }
   }
-  return shuffle(deck);
+
+  return deck;
 }
 
 function shuffle(arr) {
   const a = [...arr];
 
-  // V5.15：使用 Node.js crypto.randomInt 做 Fisher-Yates 洗牌。
   for (let i = a.length - 1; i > 0; i--) {
-    const j = crypto.randomInt(0, i + 1);
+    const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
 
@@ -427,45 +430,35 @@ const BIG2_SUIT = { "♣":0,"♦":1,"♥":2,"♠":3 };
 
 function big2CardValue(c){ return BIG2_RANK[c.rank]*4 + BIG2_SUIT[c.suit]; }
 function big2Sort(cards){ return [...cards].sort((a,b)=>big2CardValue(a)-big2CardValue(b)); }
-function big2Deal(room){
+function big2Deal(room) {
+  // V5.42：每場都重新建立完整 52 張牌。
+  let deck = shuffle(makeDeck());
 
-  const deck = makeDeck();
+  // 洗完再隨機切牌一次。
+  const cut = 1 + Math.floor(Math.random() * 51);
+  deck = deck.slice(cut).concat(deck.slice(0, cut));
 
-  // 積分與勝場跨場保留，只清空手牌。
-  room.players.forEach(p => {
-    if (!Number.isFinite(p.points)) p.points = 0;
-    if (!Number.isFinite(p.wins)) p.wins = 0;
-    p.hand = [];
+  room.players.forEach(player => {
+    player.hand = [];
   });
 
-  // 從房主（players[0]）開始，一張一張輪流發，
-  // 直到 52 張全部發完，不保留任何底牌。
+  room.pile = [];
+  room.lastPlay = null;
+  room.tablePlays = [];
+  room.passCount = 0;
+  room.winnerId = null;
+  room.started = true;
+  room.turnIndex = 0;
+  room.matchRecorded = false;
+
+  // 從房主開始，一張一張輪流發，直到 52 張全部發完。
   let receiverIndex = 0;
   while (deck.length > 0) {
-    const card = deck.pop();
-    room.players[receiverIndex].hand.push(card);
+    room.players[receiverIndex].hand.push(deck.shift());
     receiverIndex = (receiverIndex + 1) % room.players.length;
   }
 
-  room.players.forEach(p => p.hand = big2Sort(p.hand));
-
-  room.started = true;
-  room.turnIndex = 0;
-  room.lastPlay = null;
-  room.tablePlays = [];
-  room.history = [];
-  room.passCount = 0;
-  room.winnerId = null;
-  room.matchRecorded = false;
-  room.scoreSummary = null;
-
-  // 大老二首手仍由持有梅花 3 的玩家先出。
-  const starter = room.players.findIndex(
-    p => p.hand.some(c => c.rank === "3" && c.suit === "♣")
-  );
-  room.turnIndex = starter >= 0 ? starter : 0;
-
-
+  room.log.push("🃏 新一場大老二：52 張牌已重新洗牌並全部發完");
 }
 function big2Groups(cards){
   const m=new Map();
@@ -680,9 +673,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.41",
+    version: "V5.42",
     date: "2026/08/24",
-    content: "更新大老二順子規則：2 不可與 3 相連；JQKA2 為最大順，其次 10JQKA，34567 為最小順。"
+    content: "大老二洗牌機制強化：每場重新建立完整 52 張牌，使用 Fisher–Yates 洗牌並隨機切牌後，再從房主開始輪流發至全部發完。"
   }
 ];
 

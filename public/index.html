@@ -89,11 +89,11 @@
       <div id="maintenanceEntries">
         <div class="maintenanceEntry latestOnly">
           <div class="maintenanceMeta">
-            <span class="maintenanceVersion">V5.41</span>
+            <span class="maintenanceVersion">V5.42</span>
             <time>2026/08/24</time>
           </div>
           <span class="maintenanceSummary">
-            更新大老二順子規則：2 不可與 3 相連；JQKA2 為最大順，其次 10JQKA，34567 為最小順。
+            大老二洗牌機制強化：每場重新建立完整 52 張牌，使用 Fisher–Yates 洗牌並隨機切牌後，再從房主開始輪流發至全部發完。
           </span>
         </div>
       </div>
@@ -111,7 +111,7 @@
         <input id="maintenancePassword" type="password" autocomplete="current-password" maxlength="32">
 
         <label for="maintenanceVersion">版本編號</label>
-        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.41">
+        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.42">
 
         <label for="maintenanceDate">日期</label>
         <input id="maintenanceDate" type="text" inputmode="numeric" placeholder="2026/08/24" maxlength="10">

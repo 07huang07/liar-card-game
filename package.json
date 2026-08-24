@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.37.0",
+  "version": "5.42.0",
   "private": true,
-  "description": "Card Game Hub V5.41：更新大老二順子規則",
+  "description": "Card Game Hub V5.42：大老二洗牌機制強化",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
