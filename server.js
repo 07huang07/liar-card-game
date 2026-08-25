@@ -702,9 +702,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.44",
-    date: "2026/08/24",
-    content: "修正大老二洗牌後第一手無法出牌的 Bug：改由持有梅花 3 的玩家自動先出；發牌後手牌依 3～2 與花色自動排序整齊。"
+    version: "V5.45",
+    date: "2026/08/25",
+    content: "吹牛勝利判定優化：任一玩家手牌歸零時立即獲勝；其餘功能維持不變。"
   }
 ];
 
@@ -1126,6 +1126,21 @@ io.on("connection", socket => {
       claimRank,
       cards
     };
+    // V5.45-zero-hand-win
+    if (player.hand.length === 0) {
+      room.winnerId = player.id;
+      room.started = false;
+
+      if (!room.matchRecorded) {
+        recordMatchResult(room, player.id);
+        room.matchRecorded = true;
+      }
+
+      room.log.push(`🎉 ${player.name} 手牌歸零，立即獲勝！`);
+      emitRoom(room);
+      return cb?.({ ok: true, winnerId: player.id });
+    }
+
 
     // 每一次成功出牌算一回合
     room.liarRoundCount = (room.liarRoundCount || 0) + 1;

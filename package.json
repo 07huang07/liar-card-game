@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.44.0",
+  "version": "5.45.0",
   "private": true,
-  "description": "Card Game Hub V5.44：修正大老二第一手與手牌排序 Bug",
+  "description": "Card Game Hub V5.45：吹牛手牌歸零立即獲勝",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
