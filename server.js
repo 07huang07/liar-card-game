@@ -702,9 +702,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.45",
-    date: "2026/08/25",
-    content: "吹牛勝利判定優化：任一玩家手牌歸零時立即獲勝；其餘功能維持不變。"
+    version: "V5.46",
+    date: "2026/08/26",
+    content: "吹牛版面優化：牌桌與底部手牌區固定維持開局時的最大尺寸，不再因手牌數量變少而縮小；其餘功能維持不變。"
   }
 ];
 

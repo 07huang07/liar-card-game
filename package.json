@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.45.0",
+  "version": "5.46.0",
   "private": true,
-  "description": "Card Game Hub V5.45：吹牛手牌歸零立即獲勝",
+  "description": "Card Game Hub V5.46：吹牛牌桌與手牌區固定尺寸",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
