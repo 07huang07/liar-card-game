@@ -1,8 +1,8 @@
 {
   "name": "liar-card-game",
-  "version": "5.47.0",
+  "version": "5.48.0",
   "private": true,
-  "description": "Card Game Hub V5.47：修正吹牛牌桌與手牌區縮小 Bug",
+  "description": "Card Game Hub V5.48：修正吹牛固定尺寸與手牌裁切問題",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
