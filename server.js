@@ -702,9 +702,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.48",
+    version: "V5.49",
     date: "2026/08/26",
-    content: "修正吹牛牌桌與手牌區仍會縮小及底部手牌被裁切的問題：牌桌與手牌區改為固定尺寸，外層空間不足時改由遊戲頁捲動，不再裁掉內容。"
+    content: "修正吹牛無法出牌與雙重滾輪問題：出牌改以畫面選取牌的原始索引送出；桌機版固定單一畫面顯示牌桌、手牌與操作區，不再產生頁面滾輪。"
   }
 ];
 
@@ -1092,7 +1092,7 @@ io.on("connection", socket => {
       return cb?.({ ok: false, message: "操作太頻繁，請稍後再試" });
     }
     const room = rooms.get(socket.data.roomCode);
-    if (!room || room.gameType !== "liar" || !room.started) return;
+    if (!room || room.gameType !== "liar" || !room.started) return cb?.({ ok: false, message: "遊戲尚未開始" });
     const player = getPlayer(room, socket.id);
     if (!player || currentPlayer(room)?.id !== socket.id) {
       return cb?.({ ok: false, message: "還沒輪到你" });

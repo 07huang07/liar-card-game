@@ -69,10 +69,36 @@ $("copyBtn").onclick=async()=>{await navigator.clipboard.writeText($("roomCode")
 $("startBtn").onclick=()=>socket.emit("startGame",{},res=>{if(res&&!res.ok)setMsg(res.message);});
 
 $("playBtn").onclick=()=>{
-  const indices=[...selected].sort((a,b)=>a-b);
+  if(!state?.started){
+    return setMsg("遊戲尚未開始");
+  }
+
+  const me=state.players?.find(p=>p.id===socket.id);
+  if(!me?.isTurn){
+    return setMsg("還沒輪到你");
+  }
+
+  // V5.49：直接從目前畫面中已選取牌讀取原始手牌 index，
+  // 避免手牌顯示排序後出牌 index 不一致。
+  const indices=[...document.querySelectorAll("#hand .card.selected")]
+    .map(el=>Number(el.dataset.originalIndex))
+    .filter(Number.isInteger)
+    .sort((a,b)=>a-b);
+
+  if(!indices.length){
+    return setMsg("至少要選 1 張牌");
+  }
+
+  $("playBtn").disabled=true;
+
   socket.emit("playCards",{indices,claimRank:$("claimRank").value},res=>{
-    if(!res?.ok)return setMsg(res?.message||"出牌失敗");
-    selected.clear(); setMsg("");
+    if(!res?.ok){
+      $("playBtn").disabled=false;
+      return setMsg(res?.message||"出牌失敗");
+    }
+
+    selected.clear();
+    setMsg("");
   });
 };
 
@@ -106,7 +132,7 @@ $("challengeBtn").onclick=()=>{
 
 $("closeResultBtn").onclick=()=>$("resultOverlay").classList.add("hidden");
 
-socket.on("yourHand",cards=>{hand=cards;selected=new Set([...selected].filter(i=>i<hand.length));renderHand();});
+socket.on("yourHand",cards=>{hand=cards;selected.clear();renderHand();});
 socket.on("roomState", next => {
   state = next;
   renderState();

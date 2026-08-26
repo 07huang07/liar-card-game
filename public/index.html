@@ -89,11 +89,11 @@
       <div id="maintenanceEntries">
         <div class="maintenanceEntry latestOnly">
           <div class="maintenanceMeta">
-            <span class="maintenanceVersion">V5.48</span>
+            <span class="maintenanceVersion">V5.49</span>
             <time>2026/08/26</time>
           </div>
           <span class="maintenanceSummary">
-            修正吹牛牌桌與手牌區仍會縮小及底部手牌被裁切的問題：牌桌與手牌區改為固定尺寸，外層空間不足時改由遊戲頁捲動，不再裁掉內容。
+            修正吹牛無法出牌與雙重滾輪問題：出牌改以畫面選取牌的原始索引送出；桌機版固定單一畫面顯示牌桌、手牌與操作區，不再產生頁面滾輪。
           </span>
         </div>
       </div>
@@ -111,7 +111,7 @@
         <input id="maintenancePassword" type="password" autocomplete="current-password" maxlength="32">
 
         <label for="maintenanceVersion">版本編號</label>
-        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.48">
+        <input id="maintenanceVersion" type="text" maxlength="16" placeholder="V5.49">
 
         <label for="maintenanceDate">日期</label>
         <input id="maintenanceDate" type="text" inputmode="numeric" placeholder="2026/08/24" maxlength="10">
@@ -145,6 +145,6 @@
     </div>
     <div class="footer">POWER by hhhyyy</div>
   </main>
-  <script src="/maintenance.js?v=5.48"></script>
+  <script src="/maintenance.js?v=5.49"></script>
 </body>
 </html>
