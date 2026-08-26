@@ -702,9 +702,9 @@ const MAINTENANCE_FILE = path.join(__dirname, "maintenance-log.json");
 
 const DEFAULT_MAINTENANCE_ENTRIES = [
   {
-    version: "V5.46",
+    version: "V5.47",
     date: "2026/08/26",
-    content: "吹牛版面優化：牌桌與底部手牌區固定維持開局時的最大尺寸，不再因手牌數量變少而縮小；其餘功能維持不變。"
+    content: "修正吹牛牌桌與手牌區仍會隨手牌減少而縮小的 Bug：固定外層版面、牌桌列與手牌列高度，整場尺寸維持一致。"
   }
 ];
 

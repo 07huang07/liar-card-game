@@ -4257,3 +4257,151 @@ main {
   }
 }
 \n/* V5.46 吹牛：牌桌與手牌區固定尺寸 */\n@media (min-width:801px){\n.centerGame{grid-template-rows:auto minmax(0,1fr) 238px !important;}\n.compactTable{width:min(88%,940px)!important;max-width:940px!important;height:410px!important;min-height:410px!important;max-height:410px!important;flex-shrink:0!important;}\n.centerGame>.handDock{height:238px!important;min-height:238px!important;max-height:238px!important;flex-shrink:0!important;}\n.centerGame>.handDock .hand{height:100%!important;min-height:0!important;max-height:none!important;}\n}\n@media (max-width:1360px) and (min-width:801px){\n.compactTable{width:min(86%,840px)!important;max-width:840px!important;height:380px!important;min-height:380px!important;max-height:380px!important;}\n.centerGame>.handDock{height:228px!important;min-height:228px!important;max-height:228px!important;}\n}\n@media (max-height:780px) and (min-width:801px){\n.compactTable{width:min(82%,790px)!important;max-width:790px!important;height:325px!important;min-height:325px!important;max-height:325px!important;}\n.centerGame>.handDock{height:220px!important;min-height:220px!important;max-height:220px!important;}\n}\n
+
+/* =========================================================
+   V5.47 吹牛固定尺寸 BUG 修正
+   關鍵：固定 centerGame 的三列高度，
+   不再讓 auto / minmax 根據手牌數量重新分配空間。
+   ========================================================= */
+
+@media (min-width: 801px) {
+
+  /* 外層整體固定，不因內容數量重排 */
+  .centerGame {
+    display: grid !important;
+    grid-template-rows: 78px 410px 238px !important;
+    grid-auto-rows: 0 !important;
+    align-content: start !important;
+    align-items: stretch !important;
+    min-height: 726px !important;
+    height: 726px !important;
+    max-height: 726px !important;
+    overflow: visible !important;
+  }
+
+  /* 本輪點數區固定 */
+  .centerGame > .rankDock {
+    grid-row: 1 !important;
+    height: 78px !important;
+    min-height: 78px !important;
+    max-height: 78px !important;
+    align-self: stretch !important;
+  }
+
+  /* 牌桌所在列本身也固定，而不只 pokerTable */
+  .centerGame > .compactTableScene,
+  .centerGame > .tableScene.compactTableScene {
+    grid-row: 2 !important;
+    height: 410px !important;
+    min-height: 410px !important;
+    max-height: 410px !important;
+    align-self: stretch !important;
+    flex: 0 0 410px !important;
+  }
+
+  .centerGame .compactTable {
+    height: 410px !important;
+    min-height: 410px !important;
+    max-height: 410px !important;
+    flex: 0 0 410px !important;
+  }
+
+  /* 手牌外框固定 */
+  .centerGame > .handDock {
+    grid-row: 3 !important;
+    height: 238px !important;
+    min-height: 238px !important;
+    max-height: 238px !important;
+    align-self: stretch !important;
+    flex: 0 0 238px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 手牌內容區也固定，不讓少牌時把父層撐縮 */
+  .centerGame > .handDock > .compactHand,
+  .centerGame > .handDock > .hand {
+    height: 182px !important;
+    min-height: 182px !important;
+    max-height: 182px !important;
+    align-content: flex-start !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* 中型桌機：固定該尺寸，不依牌數變化 */
+@media (max-width: 1360px) and (min-width: 801px) {
+  .centerGame {
+    grid-template-rows: 72px 380px 228px !important;
+    min-height: 680px !important;
+    height: 680px !important;
+    max-height: 680px !important;
+  }
+
+  .centerGame > .rankDock {
+    height: 72px !important;
+    min-height: 72px !important;
+    max-height: 72px !important;
+  }
+
+  .centerGame > .compactTableScene,
+  .centerGame > .tableScene.compactTableScene,
+  .centerGame .compactTable {
+    height: 380px !important;
+    min-height: 380px !important;
+    max-height: 380px !important;
+    flex-basis: 380px !important;
+  }
+
+  .centerGame > .handDock {
+    height: 228px !important;
+    min-height: 228px !important;
+    max-height: 228px !important;
+    flex-basis: 228px !important;
+  }
+
+  .centerGame > .handDock > .compactHand,
+  .centerGame > .handDock > .hand {
+    height: 172px !important;
+    min-height: 172px !important;
+    max-height: 172px !important;
+  }
+}
+
+/* 低高度桌機：仍固定該斷點尺寸，不依手牌數量改變 */
+@media (max-height: 780px) and (min-width: 801px) {
+  .centerGame {
+    grid-template-rows: 66px 325px 220px !important;
+    min-height: 611px !important;
+    height: 611px !important;
+    max-height: 611px !important;
+  }
+
+  .centerGame > .rankDock {
+    height: 66px !important;
+    min-height: 66px !important;
+    max-height: 66px !important;
+  }
+
+  .centerGame > .compactTableScene,
+  .centerGame > .tableScene.compactTableScene,
+  .centerGame .compactTable {
+    height: 325px !important;
+    min-height: 325px !important;
+    max-height: 325px !important;
+    flex-basis: 325px !important;
+  }
+
+  .centerGame > .handDock {
+    height: 220px !important;
+    min-height: 220px !important;
+    max-height: 220px !important;
+    flex-basis: 220px !important;
+  }
+
+  .centerGame > .handDock > .compactHand,
+  .centerGame > .handDock > .hand {
+    height: 164px !important;
+    min-height: 164px !important;
+    max-height: 164px !important;
+  }
+}
